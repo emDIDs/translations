@@ -6,9 +6,13 @@ const button1 = document.getElementById("id-submit");
 const button2 = document.getElementById("pull-text");
 const button3 = document.getElementById("translate");
 const textDump = document.getElementById("text-dump");
+const rteDump = document.getElementById("RTE-dump");
+const slideData = document.getElementById("slide-data");
 // const button4 = document.getElementById("download");
 const link1 = document.getElementById("downloadJSON-link");
 input1.value = "58a6d1ce-b958-47d7-a012-d4b811a7751c";
+let workingJSON = {};
+const language = "spanish";
 // fetch lesson
 const bigObject = {
     english: {},
@@ -52,6 +56,14 @@ button1.addEventListener("click", () => {
                                 componentName
                             ].componentType
                         ) {
+                            case "geogebra": {
+                                console.log(contents[comp].config.materialId);
+                                bigObject.english[
+                                    "slide".concat(item)
+                                ].contents[componentName].materialId =
+                                    contents[comp].config.materialId;
+                                break;
+                            }
                             case "textbox":
                             case "richtexteditor": {
                                 bigObject.english[
@@ -250,10 +262,94 @@ button2.addEventListener("click", () => {
 
 // translate applet
 button3.addEventListener("click", () => {
-    console.log(pastedJSON.value);
-    textDump.innerHTML = JSON.parse(
-        pastedJSON.value
-    ).spanish.slide0.contents.richTextEditor1.text;
+    if (pastedJSON) {
+        workingJSON = JSON.parse(pastedJSON.value);
+        console.log("Workin hard", workingJSON);
+
+        const workingKeys = Object.keys(workingJSON[language]);
+        for (const keys of workingKeys) {
+            console.log(keys);
+            const fragment = document.createDocumentFragment();
+            const slideTitle = fragment
+                .appendChild(document.createElement("div"))
+                .appendChild(document.createElement("h2"));
+            slideTitle.textContent = `Slide ${
+                Number(keys.charAt(keys.length - 1)) + 1
+            }`;
+            const components = workingJSON[language][keys].contents;
+            console.log(components);
+            for (const component of Object.keys(components)) {
+                switch (components[component].componentType) {
+                    case "richtexteditor": {
+                        const rteDump = document.createElement("p");
+                        rteDump.innerHTML = components[component].text;
+                        fragment.appendChild(rteDump);
+                        break;
+                    }
+                    case "textbox": {
+                        const textDump = document.createElement("p");
+                        textDump.innerHTML = `<p>${components[component].text}</p>`;
+                        fragment.appendChild(textDump);
+                        break;
+                    }
+                    case "button": {
+                        const soloButton = document.createElement("button");
+                        soloButton.textContent = components[component].text;
+                        fragment.appendChild(soloButton);
+                        break;
+                    }
+                    case "buttongroup": {
+                        Object.values(components[component].buttons).forEach(
+                            (element) => {
+                                const groupButton =
+                                    document.createElement("button");
+                                groupButton.textContent = element;
+                                fragment.appendChild(groupButton);
+                            }
+                        );
+                        break;
+                    }
+                    case "select": {
+                        const selectDump = document.createElement("select");
+                        Object.values(components[component].select).forEach(
+                            (element) => {
+                                const optionDump =
+                                    document.createElement("option");
+                                optionDump.textContent = element;
+                                selectDump.appendChild(optionDump);
+                            }
+                        );
+                        fragment.appendChild(selectDump);
+                        break;
+                    }
+                    case "geogebra": {
+                        const ggb = document.createElement("div");
+                        ggb.setAttribute("id", "ggb-element");
+                        fragment.appendChild(ggb);
+                        const params = {
+                            material_id: `${components[component].materialId}`,
+                            appName: "classic",
+                            scaleContainerClass: "container",
+                            showToolBar: false,
+                            showAlgebraInput: false,
+                            showMenuBar: false,
+                            enableRightClick: false,
+                            language: "es",
+                        };
+
+                        // eslint-disable-next-line no-undef
+                        const applet = new GGBApplet(params);
+                        applet.inject("ggb-element");
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+
+            slideData.appendChild(fragment);
+        }
+    }
 });
 
 // download applet

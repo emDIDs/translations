@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
     <head>
         <meta charset="UTF-8" />
@@ -9,12 +9,13 @@
             rel="stylesheet"
             href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css" />
         <link rel="icon" href="./favicon.png" type="image/x-icon" />
+        <script src="https://www.geogebra.org/apps/deployggb.js"></script>
     </head>
     <body>
         <main>
             <h1>Cognito Translation Tool</h1>
             <label for="lessonID">Enter GlobalID:</label>
-            <input id="lessonID" type="text" placeholder="GlobalID" />
+            <input id="lessonID" type="text" placeholder="GlobalID" size="40" />
             <button id="id-submit">Log Lesson Data in Console</button>
             <button id="pull-text">Download All Text</button>
             <a target="_blank" id="downloadJSON-link"></a>
@@ -24,7 +25,10 @@
             <textarea id="json-object"></textarea>
             <p>Enter JavaScript below:</p>
             <textarea id="javascript"></textarea>
-            <p id="text-dump"></p>
+            <section
+                id="slide-data"
+                class="container"
+                style="border:2px white solid; margin:2%;padding:2%"></section>
             <button id="translate">Translate to Spanish</button>
             <button id="download">Download Spanish Applet</button>
         </main>

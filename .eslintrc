@@ -1,0 +1,78 @@
+{
+    "env": {
+      "browser": true,
+      "es2021": true,
+      "node": true
+    },
+    "extends": "eslint:recommended",
+    "overrides": [],
+    "parserOptions": {
+      "ecmaVersion": "latest",
+      "sourceType": "module"
+    },
+    "rules": {
+      // ERROR RULES
+      "no-const-assign": "error",
+      "no-global-assign": "error",
+      "no-undef": "error",
+      // WARNING RULES
+      "array-callback-return": ["warn", { "checkForEach": true }],
+      "camelcase": ["warn", { "allow": ["material_id"] }],
+      "dot-notation": "warn",
+      "eqeqeq": "warn",
+      "id-length": [
+        "warn",
+        { "exceptions": ["i", "L", "j", "K"], "properties": "never" }
+      ],
+      "new-cap": "warn",
+      "no-array-constructor": "warn",
+      "no-case-declarations": "warn",
+      "no-duplicate-imports": "warn",
+      "no-else-return": "warn",
+      "no-eval": "warn",
+      "no-implied-eval": "warn",
+      "no-new-object": "warn",
+      "no-new-wrappers": "warn",
+      "no-prototype-builtins": "warn",
+      "no-underscore-dangle": "warn",
+      "no-unneeded-ternary": "warn",
+      "no-unused-vars": [
+        "warn",
+        {
+          "varsIgnorePattern": "ggbOnInit|readKeyboardInstructions|updateKeyboardInstructions|ggbReadText|enableButton|libClientFunction|libClickFunction|libKeyFunction|registerSafeObjectUpdateListener|registerSafeObjectClickListener|registerHoverListener|unavailableButtonText|setTabOrder|manageAddedList|editXML|isPoly|selectedObject|readOrder",
+          "argsIgnorePattern": "clientEvent|clickedName|keyEvent",
+          "ignoreRestSiblings": true
+        }
+      ],
+      "no-useless-escape": "warn",
+      "no-var": "warn",
+      "object-shorthand": "warn",
+      "one-var": ["warn", "never"],
+      "prefer-const": "warn",
+      "prefer-destructuring": [
+        "warn",
+        {
+          "array": false,
+          "object": true
+        },
+        {
+          "enforceForRenamedProperties": false
+        }
+      ],
+      "spaced-comment": "warn"
+    },
+    "globals": {
+      "components": "readonly",
+      "slide": "readonly",
+      "utils": "readonly",
+      "didUtils": "readonly",
+      "autorun": "readonly",
+      "controls": "readonly",
+      "getFromSlide": "readonly",
+      "window": "readonly",
+      "document": "readonly",
+      "ggbApplet": "readonly"
+    },
+    "ignorePatterns": ["**/unlintedFolder"]
+  }
+  

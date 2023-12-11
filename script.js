@@ -7,7 +7,7 @@ const button2 = document.getElementById("pull-text");
 const button3 = document.getElementById("translate");
 const textDump = document.getElementById("text-dump");
 // const button4 = document.getElementById("download");
-// const link1 = document.getElementById("downloadJSON-link");
+const link1 = document.getElementById("downloadJSON-link");
 input1.value = "58a6d1ce-b958-47d7-a012-d4b811a7751c";
 // fetch lesson
 const bigObject = {

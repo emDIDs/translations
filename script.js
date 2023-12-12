@@ -581,7 +581,7 @@ button3.addEventListener("click", () => {
                         imageDump.alt = components[component].alt;
                         imageDump.setAttribute(
                             "style",
-                            "background-color: rgba(255, 255, 255, 1);"
+                            "background-color: rgba(255, 255, 255, 1);color:rgba(0, 0, 0, 1)"
                         );
                         if (
                             components[component][component.concat("AriaLabel")]

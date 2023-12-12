@@ -9,7 +9,7 @@ const button3 = document.getElementById("translate");
 const slideData = document.getElementById("slide-data");
 // const button4 = document.getElementById("download");
 const link1 = document.getElementById("downloadJSON-link");
-input1.value = "58a6d1ce-b958-47d7-a012-d4b811a7751c";
+// input1.value = "758108c1-42f4-441b-9db2-dd528b088eca";
 let workingJSON = {};
 const language = "spanish";
 // fetch lesson
@@ -56,6 +56,10 @@ button1.addEventListener("click", () => {
                         ) {
                             case "geogebra": {
                                 bigObject.english[
+                                    "slide".concat(item)
+                                ].contents[componentName][
+                                    componentName.concat("AriaLabel")
+                                ] = bigObject.english[
                                     "slide".concat(item)
                                 ].contents[componentName].materialId =
                                     contents[comp].config.materialId;
@@ -426,7 +430,17 @@ button3.addEventListener("click", () => {
                         const ggbContainer = document.createElement("div");
                         ggbContainer.setAttribute("class", "container");
                         const ggb = document.createElement("div");
-                        ggb.setAttribute("id", "ggb-element");
+                        console.log(
+                            "ggb-element".concat(
+                                components[component].materialId
+                            )
+                        );
+                        ggb.setAttribute(
+                            "id",
+                            "ggb-element".concat(
+                                components[component].materialId
+                            )
+                        );
                         fragment.appendChild(ggbContainer).appendChild(ggb);
                         const params = {
                             material_id: `${components[component].materialId}`,
@@ -437,11 +451,16 @@ button3.addEventListener("click", () => {
                             showMenuBar: false,
                             enableRightClick: false,
                             language: "es",
+                            showFullscreenButton: "true",
                         };
-
+                        // if (components[component].)
                         // eslint-disable-next-line no-undef
                         const applet = new GGBApplet(params);
-                        applet.inject("ggb-element");
+                        applet.inject(
+                            "ggb-element".concat(
+                                components[component].materialId
+                            )
+                        );
                         break;
                     }
                     case "pdfviewer": {

@@ -1,12 +1,11 @@
 // pull elements from document and name them
 const pastedJSON = document.getElementById("json-object");
+// eslint-disable-next-line no-unused-vars
 const pastedJS = document.getElementById("javascript");
 const input1 = document.getElementById("lessonID");
 const button1 = document.getElementById("id-submit");
 const button2 = document.getElementById("pull-text");
 const button3 = document.getElementById("translate");
-const textDump = document.getElementById("text-dump");
-const rteDump = document.getElementById("RTE-dump");
 const slideData = document.getElementById("slide-data");
 // const button4 = document.getElementById("download");
 const link1 = document.getElementById("downloadJSON-link");
@@ -34,7 +33,6 @@ button1.addEventListener("click", () => {
         )
             .then((response) => response.json())
             .then((data) => {
-                console.log(data);
                 for (const item in data.slides) {
                     const { contents } = data.slides[item];
                     bigObject.english["slide".concat(item)] = {
@@ -57,7 +55,6 @@ button1.addEventListener("click", () => {
                             ].componentType
                         ) {
                             case "geogebra": {
-                                console.log(contents[comp].config.materialId);
                                 bigObject.english[
                                     "slide".concat(item)
                                 ].contents[componentName].materialId =
@@ -122,6 +119,10 @@ button1.addEventListener("click", () => {
                                     "slide".concat(item)
                                 ].contents[componentName].copyright =
                                     contents[comp].data.copyright;
+                                bigObject.english[
+                                    "slide".concat(item)
+                                ].contents[componentName].src =
+                                    contents[comp].data.src;
                                 break;
                             }
                             case "dropdown": {
@@ -149,12 +150,40 @@ button1.addEventListener("click", () => {
                                     contents[comp].data.placeholder;
                                 break;
                             }
-                            case "complextable":
                             case "table": {
                                 bigObject.english[
                                     "slide".concat(item)
+                                ].contents[componentName].columns = {};
+                                for (const colNum in Object.keys(
+                                    contents[comp].data.columns
+                                )) {
+                                    bigObject.english[
+                                        "slide".concat(item)
+                                    ].contents[componentName].columns[
+                                        "col".concat(colNum, "Text")
+                                    ] =
+                                        contents[comp].data.columns[
+                                            colNum
+                                        ].value;
+                                }
+                                bigObject.english[
+                                    "slide".concat(item)
                                 ].contents[componentName].rows = {};
+                                bigObject.english[
+                                    "slide".concat(item)
+                                ].contents[componentName].ariaRows = {};
+
                                 for (const rowNum in contents[comp].data.rows) {
+                                    bigObject.english[
+                                        "slide".concat(item)
+                                    ].contents[componentName].rows[
+                                        "row".concat(rowNum)
+                                    ] = {};
+                                    bigObject.english[
+                                        "slide".concat(item)
+                                    ].contents[componentName].ariaRows[
+                                        "row".concat(rowNum)
+                                    ] = {};
                                     for (const cellNum in contents[comp].data
                                         .rows[rowNum]) {
                                         if (
@@ -165,14 +194,10 @@ button1.addEventListener("click", () => {
                                             bigObject.english[
                                                 "slide".concat(item)
                                             ].contents[componentName].rows[
-                                                "row".concat(
-                                                    rowNum,
-                                                    cellNum,
-                                                    "Text"
-                                                )
-                                            ] = {
+                                                "row".concat(rowNum)
+                                            ]["col".concat(cellNum, "Text")] = {
                                                 ...contents[comp].data.rows[
-                                                    rowNum
+                                                    "row".concat(rowNum)
                                                 ][cellNum].mixedText["0"]
                                                     .children,
                                             };
@@ -180,25 +205,91 @@ button1.addEventListener("click", () => {
                                             bigObject.english[
                                                 "slide".concat(item)
                                             ].contents[componentName].rows[
-                                                "row".concat(
-                                                    rowNum,
-                                                    cellNum,
-                                                    "Text"
-                                                )
-                                            ] =
+                                                "row".concat(rowNum)
+                                            ]["col".concat(cellNum, "Text")] =
                                                 contents[comp].data.rows[
                                                     rowNum
                                                 ][cellNum].value;
                                         }
                                         bigObject.english[
                                             "slide".concat(item)
-                                        ].contents[componentName].rows[
-                                            "row".concat(
-                                                rowNum,
-                                                cellNum,
-                                                "AriaLabel"
-                                            )
-                                        ] =
+                                        ].contents[componentName].ariaRows[
+                                            "row".concat(rowNum)
+                                        ]["col".concat(cellNum, "AriaLabel")] =
+                                            contents[comp].data.rows[rowNum][
+                                                cellNum
+                                            ].ariaLabel;
+                                    }
+                                }
+                                break;
+                            }
+                            case "complextable": {
+                                bigObject.english[
+                                    "slide".concat(item)
+                                ].contents[componentName].rows = {};
+                                bigObject.english[
+                                    "slide".concat(item)
+                                ].contents[componentName].ariaRows = {};
+                                for (const rowNum in contents[comp].data.rows) {
+                                    bigObject.english[
+                                        "slide".concat(item)
+                                    ].contents[componentName].rows[
+                                        "row".concat(rowNum)
+                                    ] = {};
+                                    bigObject.english[
+                                        "slide".concat(item)
+                                    ].contents[componentName].ariaRows[
+                                        "row".concat(rowNum)
+                                    ] = {};
+                                    for (const cellNum in contents[comp].data
+                                        .rows[rowNum]) {
+                                        if (
+                                            contents[comp].data.rows[rowNum][
+                                                cellNum
+                                            ].inputType === "mixed"
+                                        ) {
+                                            let trimmedSentence = "";
+                                            for (const item of contents[comp]
+                                                .data.rows[rowNum][cellNum]
+                                                .mixedText["0"].children) {
+                                                console.log(item);
+                                                if (item.text) {
+                                                    console.log(item.text);
+                                                    trimmedSentence =
+                                                        trimmedSentence.concat(
+                                                            item.text
+                                                        );
+                                                    // do stuff
+                                                } else if (item.latex) {
+                                                    trimmedSentence =
+                                                        trimmedSentence.concat(
+                                                            item.latex,
+                                                            " "
+                                                        );
+                                                }
+                                            }
+                                            console.log(trimmedSentence);
+                                            bigObject.english[
+                                                "slide".concat(item)
+                                            ].contents[componentName].rows[
+                                                "row".concat(rowNum)
+                                            ]["col".concat(cellNum, "Text")] =
+                                                trimmedSentence;
+                                        } else {
+                                            bigObject.english[
+                                                "slide".concat(item)
+                                            ].contents[componentName].rows[
+                                                "row".concat(rowNum)
+                                            ]["col".concat(cellNum, "Text")] =
+                                                contents[comp].data.rows[
+                                                    rowNum
+                                                ][cellNum].value;
+                                        }
+                                        bigObject.english[
+                                            "slide".concat(item)
+                                        ].contents[componentName].ariaRows[
+                                            "row".concat(rowNum)
+                                        ]["col".concat(cellNum, "AriaLabel")] =
                                             contents[comp].data.rows[rowNum][
                                                 cellNum
                                             ].ariaLabel;
@@ -237,6 +328,13 @@ button1.addEventListener("click", () => {
                                 }
                                 break;
                             }
+                            case "pdfviewer": {
+                                bigObject.english[
+                                    "slide".concat(item)
+                                ].contents[componentName].id =
+                                    contents[comp].data.id;
+                                break;
+                            }
                             default:
                                 break;
                         }
@@ -262,13 +360,16 @@ button2.addEventListener("click", () => {
 
 // translate applet
 button3.addEventListener("click", () => {
+    const slideContainer = document.getElementById("slide-data");
+    while (slideContainer.firstChild) {
+        slideContainer.removeChild(slideContainer.firstChild);
+    }
     if (pastedJSON) {
         workingJSON = JSON.parse(pastedJSON.value);
         console.log("Workin hard", workingJSON);
 
         const workingKeys = Object.keys(workingJSON[language]);
         for (const keys of workingKeys) {
-            console.log(keys);
             const fragment = document.createDocumentFragment();
             const slideTitle = fragment
                 .appendChild(document.createElement("div"))
@@ -277,7 +378,6 @@ button3.addEventListener("click", () => {
                 Number(keys.charAt(keys.length - 1)) + 1
             }`;
             const components = workingJSON[language][keys].contents;
-            console.log(components);
             for (const component of Object.keys(components)) {
                 switch (components[component].componentType) {
                     case "richtexteditor": {
@@ -323,9 +423,11 @@ button3.addEventListener("click", () => {
                         break;
                     }
                     case "geogebra": {
+                        const ggbContainer = document.createElement("div");
+                        ggbContainer.setAttribute("class", "container");
                         const ggb = document.createElement("div");
                         ggb.setAttribute("id", "ggb-element");
-                        fragment.appendChild(ggb);
+                        fragment.appendChild(ggbContainer).appendChild(ggb);
                         const params = {
                             material_id: `${components[component].materialId}`,
                             appName: "classic",
@@ -340,6 +442,135 @@ button3.addEventListener("click", () => {
                         // eslint-disable-next-line no-undef
                         const applet = new GGBApplet(params);
                         applet.inject("ggb-element");
+                        break;
+                    }
+                    case "pdfviewer": {
+                        const pdfAdvisory = document.createElement("p");
+                        pdfAdvisory.textContent = `This page contains a PDF with ID: ${components[component].id}.`;
+                        fragment.appendChild(pdfAdvisory);
+
+                        break;
+                    }
+                    case "complextable": {
+                        const tableDump = document.createElement("table");
+                        tableDump.setAttribute(
+                            "style",
+                            "border:3px white solid"
+                        );
+                        for (const rowNum of Object.keys(
+                            components[component].rows
+                        )) {
+                            const tableRow = document.createElement("tr");
+
+                            for (const colNum of Object.keys(
+                                components[component].rows[rowNum]
+                            )) {
+                                let tableCells = null;
+                                if (
+                                    components[component].rows[rowNum][colNum]
+                                        .scope
+                                ) {
+                                    tableCells = document.createElement("th");
+                                    tableCells.textContent =
+                                        components[component].rows[rowNum][
+                                            colNum
+                                        ];
+                                    const ariaCall = colNum.replace(
+                                        "Text",
+                                        "AriaLabel"
+                                    );
+                                    tableCells.setAttribute(
+                                        "ariaLabel",
+                                        components[component].ariaRows[rowNum][
+                                            ariaCall
+                                        ]
+                                    );
+                                } else {
+                                    tableCells = document.createElement("td");
+                                    tableCells.textContent =
+                                        components[component].rows[rowNum][
+                                            colNum
+                                        ];
+                                    const ariaCall = colNum.replace(
+                                        "Text",
+                                        "AriaLabel"
+                                    );
+                                    tableCells.setAttribute(
+                                        "ariaLabel",
+                                        components[component].ariaRows[rowNum][
+                                            ariaCall
+                                        ]
+                                    );
+                                }
+                                tableRow.appendChild(tableCells);
+                            }
+                            tableDump.appendChild(tableRow);
+                        }
+                        fragment.appendChild(tableDump);
+                        break;
+                    }
+                    case "table": {
+                        const tableDump = document.createElement("table");
+                        tableDump.setAttribute(
+                            "style",
+                            "border:3px white solid"
+                        );
+                        const headerRow = document.createElement("tr");
+
+                        for (const headerCell of Object.values(
+                            components[component].columns
+                        )) {
+                            const tableHeader = document.createElement("th");
+                            tableHeader.textContent = headerCell;
+                            headerRow.appendChild(tableHeader);
+                        }
+                        tableDump.appendChild(headerRow);
+                        for (const rowNum of Object.keys(
+                            components[component].rows
+                        )) {
+                            const tableRow = document.createElement("tr");
+
+                            for (const colNum of Object.keys(
+                                components[component].rows[rowNum]
+                            )) {
+                                const tableCells = document.createElement("td");
+                                tableCells.textContent =
+                                    components[component].rows[rowNum][colNum];
+                                const ariaCall = colNum.replace(
+                                    "Text",
+                                    "AriaLabel"
+                                );
+                                tableCells.setAttribute(
+                                    "ariaLabel",
+                                    components[component].ariaRows[rowNum][
+                                        ariaCall
+                                    ]
+                                );
+                                tableRow.appendChild(tableCells);
+                            }
+                            tableDump.appendChild(tableRow);
+                        }
+                        fragment.appendChild(tableDump);
+                        break;
+                    }
+                    case "image": {
+                        const imageDump = document.createElement("img");
+                        imageDump.src = components[component].src;
+                        imageDump.alt = components[component].alt;
+                        if (
+                            components[component][component.concat("AriaLabel")]
+                        ) {
+                            imageDump.setAttribute(
+                                "ariaLabel",
+                                components[component][
+                                    component.concat("AriaLabel")
+                                ]
+                            );
+                        }
+                        fragment.appendChild(imageDump);
+                        const copyright = document.createElement("p");
+                        copyright.textContent = components[component].copyright;
+                        fragment.appendChild(copyright);
                         break;
                     }
                     default:

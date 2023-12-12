@@ -3,7 +3,7 @@ const pastedJSON = document.getElementById("json-object");
 // eslint-disable-next-line no-unused-vars
 const pastedJS = document.getElementById("javascript");
 const input1 = document.getElementById("lessonID");
-const button1 = document.getElementById("id-submit");
+// const button1 = document.getElementById("id-submit");
 const button2 = document.getElementById("pull-text");
 const button3 = document.getElementById("translate");
 const slideData = document.getElementById("slide-data");
@@ -16,7 +16,8 @@ const language = "spanish";
 const bigObject = {
     english: {},
 };
-button1.addEventListener("click", () => {
+
+function gatherData(download = false) {
     const globalID = input1.value;
     // TODO: add share and submit
     // TODO: add geogebra ID
@@ -256,9 +257,7 @@ button1.addEventListener("click", () => {
                                             for (const item of contents[comp]
                                                 .data.rows[rowNum][cellNum]
                                                 .mixedText["0"].children) {
-                                                console.log(item);
                                                 if (item.text) {
-                                                    console.log(item.text);
                                                     trimmedSentence =
                                                         trimmedSentence.concat(
                                                             item.text
@@ -272,7 +271,6 @@ button1.addEventListener("click", () => {
                                                         );
                                                 }
                                             }
-                                            console.log(trimmedSentence);
                                             bigObject.english[
                                                 "slide".concat(item)
                                             ].contents[componentName].rows[
@@ -345,21 +343,32 @@ button1.addEventListener("click", () => {
                     }
                 }
                 bigObject.spanish = bigObject.english;
-                console.log(bigObject);
+                if (download) {
+                    downloadData();
+                } else {
+                    console.log(bigObject);
+                }
             });
     } catch (error) {
         console.error(error);
     }
-});
-
-// download alt text
-button2.addEventListener("click", () => {
+}
+function downloadData() {
     // get all of the text and download it
     const blob = new Blob([JSON.stringify(bigObject)], { type: "text/json" });
     link1.href = window.URL.createObjectURL(blob);
     const todaysDate = new Date().toDateString().slice(4);
     link1.download = "AllText-".concat(todaysDate, ".JSON");
     link1.click();
+}
+
+// button1.addEventListener("click", () => {
+//     gatherData();
+// });
+
+// download alt text
+button2.addEventListener("click", () => {
+    gatherData(true);
 });
 
 // translate applet
@@ -370,8 +379,6 @@ button3.addEventListener("click", () => {
     }
     if (pastedJSON) {
         workingJSON = JSON.parse(pastedJSON.value);
-        console.log("Workin hard", workingJSON);
-
         const workingKeys = Object.keys(workingJSON[language]);
         for (const keys of workingKeys) {
             const fragment = document.createDocumentFragment();
@@ -430,11 +437,6 @@ button3.addEventListener("click", () => {
                         const ggbContainer = document.createElement("div");
                         ggbContainer.setAttribute("class", "container");
                         const ggb = document.createElement("div");
-                        console.log(
-                            "ggb-element".concat(
-                                components[component].materialId
-                            )
-                        );
                         ggb.setAttribute(
                             "id",
                             "ggb-element".concat(
@@ -576,6 +578,10 @@ button3.addEventListener("click", () => {
                         const imageDump = document.createElement("img");
                         imageDump.src = components[component].src;
                         imageDump.alt = components[component].alt;
+                        imageDump.setAttribute(
+                            "style",
+                            "background-color: rgba(255, 255, 255, 1);"
+                        );
                         if (
                             components[component][component.concat("AriaLabel")]
                         ) {

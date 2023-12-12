@@ -385,8 +385,9 @@ button3.addEventListener("click", () => {
             const slideTitle = fragment
                 .appendChild(document.createElement("div"))
                 .appendChild(document.createElement("h2"));
+            console.log(keys);
             slideTitle.textContent = `Slide ${
-                Number(keys.charAt(keys.length - 1)) + 1
+                Number(keys.replace("slide", "")) + 1
             }`;
             const components = workingJSON[language][keys].contents;
             for (const component of Object.keys(components)) {

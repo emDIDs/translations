@@ -1,0 +1,307 @@
+{
+    "english": {
+        "slide0": {
+            "slideNumber": "slide-c5ee52091a9e",
+            "codingLayer": "components.textDisplay1.updateData({text:\"This text is dynamic\"})",
+            "contents": {
+                "textDisplay1": {
+                    "textDisplay1AriaLabel": "",
+                    "componentType": "textbox",
+                    "text": "This is a text box"
+                },
+                "richTextEditor1": {
+                    "richTextEditor1AriaLabel": "",
+                    "componentType": "richtexteditor",
+                    "text": "<p>This is an rte with&nbsp;<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mfrac><mn>1</mn><mn>2</mn></mfrac></math>&nbsp;of a response and a <input aria-label=\"substitute?\" data-type=\"regular\" id=\"input1\" size=\"11\" type=\"text\" />&nbsp;in the blank.</p>\n"
+                },
+                "select1": {
+                    "select1AriaLabel": "",
+                    "componentType": "select",
+                    "select": {
+                        "select0Text": "Cats",
+                        "select1Text": "Rats",
+                        "select2Text": "Elephants",
+                        "select3Text": "Unicorns"
+                    }
+                },
+                "ggb1": {
+                    "ggb1AriaLabel": "udqc3mye",
+                    "componentType": "geogebra",
+                    "materialId": "udqc3mye"
+                },
+                "buttonGroup1": {
+                    "buttonGroup1AriaLabel": "",
+                    "componentType": "buttongroup",
+                    "buttons": { "button0Text": "Cats", "button1Text": "Dogs" }
+                },
+                "button1": {
+                    "button1AriaLabel": "",
+                    "componentType": "button",
+                    "text": "Click Here"
+                }
+            }
+        },
+        "slide1": {
+            "slideNumber": "slide-94fec44d84eb",
+            "codingLayer": "console.log(components.table1.data);\r\nconsole.log(components.table2.data);",
+            "contents": {
+                "categorizing1": {
+                    "categorizing1AriaLabel": "",
+                    "componentType": "categorization",
+                    "items": {
+                        "item0Text": "Red",
+                        "item1Text": "Blue",
+                        "item2Text": "$1$",
+                        "item3Text": "$2$"
+                    },
+                    "categories": {
+                        "category0Text": "Fish",
+                        "category1Text": "Fifth"
+                    }
+                },
+                "table1": {
+                    "table1AriaLabel": "",
+                    "componentType": "table",
+                    "columns": {
+                        "col0Text": "Independent",
+                        "col1Text": "Dependent"
+                    },
+                    "rows": {
+                        "row0": { "col0Text": "Age", "col1Text": "Height" },
+                        "row1": {
+                            "col0Text": "Time Spent Studying",
+                            "col1Text": "Grade on Exam"
+                        }
+                    },
+                    "ariaRows": {
+                        "row0": {
+                            "col0AriaLabel": "Por favor agregue texto",
+                            "col1AriaLabel": "Add text here"
+                        },
+                        "row1": {
+                            "col0AriaLabel": "Por favor agregue texto",
+                            "col1AriaLabel": "Por favor agregue texto"
+                        }
+                    }
+                },
+                "table2": {
+                    "table2AriaLabel": "",
+                    "componentType": "complextable",
+                    "rows": {
+                        "row0": {
+                            "col0Text": "Complex Independent",
+                            "col1Text": "Complex Dependent"
+                        },
+                        "row1": {
+                            "col0Text": "123",
+                            "col1Text": "Cats have 9 lives"
+                        },
+                        "row2": { "col0Text": "14", "col1Text": "Pspspspsps" }
+                    },
+                    "ariaRows": {
+                        "row0": {
+                            "col0AriaLabel": "Por favor agregue texto",
+                            "col1AriaLabel": "Por favor agregue texto"
+                        },
+                        "row1": {
+                            "col0AriaLabel": "Label this now",
+                            "col1AriaLabel": "Por favor agregue texto"
+                        },
+                        "row2": {
+                            "col0AriaLabel": "Por favor agregue texto",
+                            "col1AriaLabel": "Por favor agregue texto"
+                        }
+                    }
+                }
+            }
+        },
+        "slide2": {
+            "slideNumber": "slide-a6cbda66c1dd",
+            "codingLayer": "",
+            "contents": {
+                "image1": {
+                    "image1AriaLabel": "",
+                    "componentType": "image",
+                    "alt": "Number line alt text",
+                    "copyright": "Copyright text is right here",
+                    "src": "https://cdn.digital.greatminds.org/bynder/EM2-1694/PNG_Web Ready/9EEF9BE4-972D-45C3-99D27C759D326A1A.png"
+                },
+                "dropdown1": {
+                    "dropdown1AriaLabel": "",
+                    "componentType": "dropdown",
+                    "dropdown": {
+                        "dropdown0Text": "Option text number 1",
+                        "dropdown1Text": "Option text number 2"
+                    },
+                    "label": "Label for the input",
+                    "placeholder": "Placeholder text is here"
+                }
+            }
+        },
+        "slide3": {
+            "slideNumber": "slide-b8ffe83772a4",
+            "codingLayer": "console.log(components.pdfviewer1.data)",
+            "contents": {
+                "pdfviewer1": {
+                    "pdfviewer1AriaLabel": "",
+                    "componentType": "pdfviewer",
+                    "id": 4077
+                }
+            }
+        }
+    },
+    "spanish": {
+        "slide0": {
+            "slideNumber": "slide-c5ee52091a9e",
+            "codingLayer": "components.textDisplay1.updateData({text:\"Este texto es dinámico.\"})",
+            "contents": {
+                "textDisplay1": {
+                    "textDisplay1AriaLabel": "",
+                    "componentType": "textbox",
+                    "text": "Este es un cuadro de texto"
+                },
+                "richTextEditor1": {
+                    "richTextEditor1AriaLabel": "",
+                    "componentType": "richtexteditor",
+                    "text": "<p>Este es un rte con&nbsp;<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mfrac><mn>1</mn><mn>2</mn></mfrac></math>&nbsp;de una respuesta y un <input aria-label=\"sustituto?\" data-type=\"regular\" id=\"input1\" size=\"11\" type=\"text\" />&nbsp;en el espacio en blanco.</p>\n"
+                },
+                "select1": {
+                    "select1AriaLabel": "",
+                    "componentType": "select",
+                    "select": {
+                        "select0Text": "Gatas",
+                        "select1Text": "Ratas",
+                        "select2Text": "Elefantes",
+                        "select3Text": "Unicornios"
+                    }
+                },
+                "ggb1": {
+                    "ggb1AriaLabel": "udqc3mye",
+                    "componentType": "geogebra",
+                    "materialId": "udqc3mye"
+                },
+                "buttonGroup1": {
+                    "buttonGroup1AriaLabel": "",
+                    "componentType": "buttongroup",
+                    "buttons": {
+                        "button0Text": "Gatas",
+                        "button1Text": "Perras"
+                    }
+                },
+                "button1": {
+                    "button1AriaLabel": "",
+                    "componentType": "button",
+                    "text": "Haga clic aquí"
+                }
+            }
+        },
+        "slide1": {
+            "slideNumber": "slide-94fec44d84eb",
+            "codingLayer": "console.log(components.table1.data);\r\nconsole.log(components.table2.data);",
+            "contents": {
+                "categorizing1": {
+                    "categorizing1AriaLabel": "",
+                    "componentType": "categorization",
+                    "items": {
+                        "item0Text": "Roja",
+                        "item1Text": "Azul",
+                        "item2Text": "$1$",
+                        "item3Text": "$2$"
+                    },
+                    "categories": {
+                        "category0Text": "Pez",
+                        "category1Text": "Quinta"
+                    }
+                },
+                "table1": {
+                    "table1AriaLabel": "",
+                    "componentType": "table",
+                    "columns": {
+                        "col0Text": "Independiente",
+                        "col1Text": "Dependiente"
+                    },
+                    "rows": {
+                        "row0": { "col0Text": "Edad", "col1Text": "Altura" },
+                        "row1": {
+                            "col0Text": "Tiempo dedicado a estudiar",
+                            "col1Text": "Calificación en el examen"
+                        }
+                    },
+                    "ariaRows": {
+                        "row0": {
+                            "col0AriaLabel": "Por favor agregue texto",
+                            "col1AriaLabel": "Añade texto aquí"
+                        },
+                        "row1": {
+                            "col0AriaLabel": "Por favor agregue texto",
+                            "col1AriaLabel": "Por favor agregue texto"
+                        }
+                    }
+                },
+                "table2": {
+                    "table2AriaLabel": "",
+                    "componentType": "complextable",
+                    "rows": {
+                        "row0": {
+                            "col0Text": "Independiente complejo",
+                            "col1Text": "Dependiente complejo"
+                        },
+                        "row1": {
+                            "col0Text": "123",
+                            "col1Text": "Los gatos tienen 9 vidas."
+                        },
+                        "row2": { "col0Text": "14", "col1Text": "Pspspspsps" }
+                    },
+                    "ariaRows": {
+                        "row0": {
+                            "col0AriaLabel": "Por favor agregue texto",
+                            "col1AriaLabel": "Por favor agregue texto"
+                        },
+                        "row1": {
+                            "col0AriaLabel": "Etiqueta esto ahora",
+                            "col1AriaLabel": "Por favor agregue texto"
+                        },
+                        "row2": {
+                            "col0AriaLabel": "Por favor agregue texto",
+                            "col1AriaLabel": "Por favor agregue texto"
+                        }
+                    }
+                }
+            }
+        },
+        "slide2": {
+            "slideNumber": "slide-a6cbda66c1dd",
+            "codingLayer": "",
+            "contents": {
+                "image1": {
+                    "image1AriaLabel": "",
+                    "componentType": "image",
+                    "alt": "Texto alternativo de la recta numérica",
+                    "copyright": "El texto de derechos de autor está aquí",
+                    "src": "https://cdn.digital.greatminds.org/bynder/EM2-1694/PNG_Web Ready/9EEF9BE4-972D-45C3-99D27C759D326A1A.png"
+                },
+                "dropdown1": {
+                    "dropdown1AriaLabel": "",
+                    "componentType": "dropdown",
+                    "dropdown": {
+                        "dropdown0Text": "Texto de opción número 1",
+                        "dropdown1Text": "Texto de opción número 2"
+                    },
+                    "label": "Etiqueta para la entrada",
+                    "placeholder": "El texto del marcador de posición está aquí"
+                }
+            }
+        },
+        "slide3": {
+            "slideNumber": "slide-b8ffe83772a4",
+            "codingLayer": "console.log(components.pdfviewer1.data)",
+            "contents": {
+                "pdfviewer1": {
+                    "pdfviewer1AriaLabel": "",
+                    "componentType": "pdfviewer",
+                    "id": 28841
+                }
+            }
+        }
+    }
+}

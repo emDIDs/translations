@@ -34,6 +34,7 @@ function gatherData(download = false) {
         )
             .then((response) => response.json())
             .then((data) => {
+                console.log(data);
                 for (const item in data.slides) {
                     const { contents } = data.slides[item];
                     bigObject.english["slide".concat(item)] = {

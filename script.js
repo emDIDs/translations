@@ -365,6 +365,10 @@ function gatherData(download = false) {
                                     "slide".concat(item)
                                 ].contents[componentName].id =
                                     contents[comp].data.id;
+                                bigObject.english[
+                                    "slide".concat(item)
+                                ].contents[componentName].url =
+                                    contents[comp].data.downloadUrl;
                                 break;
                             }
                             default:
@@ -807,7 +811,11 @@ button3.addEventListener("click", () => {
                         case "pdfviewer": {
                             const pdfAdvisory = document.createElement("p");
                             pdfAdvisory.textContent = `This page contains a PDF with ID: ${components[component].id}.`;
+                            const pdfLink = document.createElement("a");
+                            pdfLink.innerText = "Link to PDF";
+                            pdfLink.href = components[component].url;
                             fragment.appendChild(pdfAdvisory);
+                            fragment.appendChild(pdfLink);
                             break;
                         }
                         case "complextable": {

@@ -24,37 +24,41 @@
             </header>
             <main>
                 <fieldset>
-                    <label for="lessonID">Enter GlobalID:</label>
-                    <input
-                        id="lessonID"
-                        type="text"
-                        placeholder="GlobalID"
-                        size="40" />
-                    <button id="id-submit" class="external-button hidden">
-                        Log Lesson Data in Console
-                    </button>
-                    <button id="pull-text" class="external-button">
-                        Download All Text
-                    </button>
-                    <a target="_blank" id="downloadJSON-link"></a>
-                    <div id="ggb-element"></div>
-                    <div>
-                        <label for="upload">
-                            Choose JSON file or paste contents here:
-                        </label>
+                    <div class="grouper">
+                        <label for="lessonID">Enter GlobalID:</label>
                         <input
-                            id="upload"
-                            type="file"
-                            accept="text/JSON"
-                            name="upload"
-                            size="30" />
-                        <textarea
-                            rows="4"
-                            cols="50"
-                            id="json-object"
-                            value=""></textarea>
+                            id="lessonID"
+                            type="text"
+                            placeholder="GlobalID"
+                            size="40" />
+                        <button id="id-submit" class="external-button hidden">
+                            Log Lesson Data in Console
+                        </button>
+                        <button id="pull-text" class="external-button">
+                            Download All Text
+                        </button>
                     </div>
-                    <div>
+                    <div class="grouper">
+                        <a target="_blank" id="downloadJSON-link"></a>
+                        <div id="ggb-element"></div>
+                        <div>
+                            <label for="upload">
+                                Choose JSON file or paste contents here:
+                            </label>
+                            <input
+                                id="upload"
+                                type="file"
+                                accept="text/JSON"
+                                name="upload"
+                                size="30" />
+                            <textarea
+                                rows="4"
+                                cols="50"
+                                id="json-object"
+                                value=""></textarea>
+                        </div>
+                    </div>
+                    <div class="grouper">
                         <button id="translate" class="external-button">
                             Translate to Spanish
                         </button>

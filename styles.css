@@ -75,7 +75,9 @@ header {
 fieldset {
     max-width: fit-content;
 }
-
+textarea {
+    margin-left: 10px;
+}
 main {
     margin: 3%;
     display: flex;
@@ -129,7 +131,9 @@ button:focus {
     background-color: rgb(106, 115, 123);
     color: white;
 }
-
+label {
+    margin-top: 20px;
+}
 input {
     min-height: 32px;
 }
@@ -160,4 +164,19 @@ select {
 
 .hidden {
     display: none;
+}
+
+.grouper {
+    margin-top: 20px;
+}
+
+#upload {
+    margin: 10px;
+    background-color: white;
+    font-family: "CircularStd", sans-serif;
+    font-size: 18px;
+    line-height: 1.5;
+    font-weight: 400;
+    padding-left: 16px;
+    padding-right: 16px;
 }

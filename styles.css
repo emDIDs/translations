@@ -56,3 +56,39 @@ body {
     font-size: 16px;
 }
 
+header {
+    text-align: center;
+}
+
+main {
+    margin: 5%;
+}
+table {
+    border-collapse: collapse;
+    border: 1px black solid;
+    margin: 10px;
+}
+th,
+td {
+    border: 1px black solid;
+    padding: 5px;
+}
+
+button {
+    margin: 10px;
+    color: white;
+    background: rgb(0, 11, 92);
+    font-family: "CircularStd", sans-serif;
+    font-size: 21px;
+    line-height: 1.5;
+    font-weight: 700;
+    padding-left: 16px;
+    padding-right: 16px;
+    border: white;
+}
+button:hover {
+    opacity: 0.65;
+}
+button:focus {
+    background-color: rgb(106, 115, 123);
+}

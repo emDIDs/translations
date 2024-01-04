@@ -733,10 +733,6 @@ button3.addEventListener("click", () => {
                     }
                     case "complextable": {
                         const tableDump = document.createElement("table");
-                        tableDump.setAttribute(
-                            "style",
-                            "border:3px white solid"
-                        );
                         for (const rowNum of Object.keys(
                             components[component].rows
                         )) {
@@ -791,10 +787,6 @@ button3.addEventListener("click", () => {
                     }
                     case "table": {
                         const tableDump = document.createElement("table");
-                        tableDump.setAttribute(
-                            "style",
-                            "border:3px white solid"
-                        );
                         const headerRow = document.createElement("tr");
 
                         for (const headerCell of Object.values(

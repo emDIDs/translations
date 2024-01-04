@@ -157,3 +157,7 @@ select {
     overflow-wrap: break-word;
     row-gap: 4px;
 }
+
+.hidden {
+    display: none;
+}

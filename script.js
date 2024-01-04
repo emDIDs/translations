@@ -50,7 +50,6 @@ function gatherData(download = false) {
         )
             .then((response) => response.json())
             .then(async function (data) {
-                console.log(data);
                 for (const item in data.slides) {
                     const { contents } = data.slides[item];
                     bigObject.english["slide".concat(item)] = {
@@ -610,7 +609,6 @@ async function getGeoGebraGuts(matID) {
             ""
         );
         const soapyComments = cleanedJS.replace(/\/\//gm, "");
-        console.log(soapyComments);
         const soapyQuotes = soapyComments.replace(/\\"/gm, "'");
 
         // removes all line breaks
@@ -726,7 +724,6 @@ button3.addEventListener("click", () => {
                 const slideTitle = fragment
                     .appendChild(slideSeparator)
                     .appendChild(document.createElement("h2"));
-                console.log(keys);
                 slideSeparator.setAttribute(
                     "style",
                     "border-top:1px black solid; margin-top:10px"
@@ -791,7 +788,6 @@ button3.addEventListener("click", () => {
                                 )
                             );
                             fragment.appendChild(ggbContainer).appendChild(ggb);
-                            console.log(workingJSON.english[keys].contents);
                             const englishReusedText =
                                 workingJSON.english[keys].contents[component]
                                     .geoGebraContent;
@@ -984,7 +980,6 @@ async function translateApplet(
     englishReusedText,
     spanishReusedText
 ) {
-    console.log("NAME", ggbName);
     // get data from textarea
     const language = "spanish";
     await sleep(2000);
@@ -1003,8 +998,6 @@ async function translateApplet(
     console.warn(prettyAltText, typeof prettyAltText);
     // updates alt text with specified language
     function handleText(englishReusedText, spanishReusedText, translatedText) {
-        console.log(reusedText);
-        console.log(prettyAltText);
         const reusedKeysArray = Object.keys(reusedText.english);
         reusedKeysArray.forEach((key) => {
             englishReusedText[key] = reusedText.english[key];

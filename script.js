@@ -437,12 +437,32 @@ function getGlobalJS() {
     return archiveGlobalJS;
 }
 
+function waitForIt(functionName) {
+    return new Promise((resolve) => {
+        if (document.querySelector("canvas")) {
+            return resolve(functionName);
+        }
+
+        const observer = new MutationObserver(() => {
+            if (document.querySelector("canvas")) {
+                observer.disconnect();
+                resolve(functionName);
+            }
+        });
+
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+        });
+    });
+}
 async function getGeoGebraGuts(matID) {
     // boilerplate language - strip it out so translators don't keep translating it
     loadApplet(matID);
-    const ggbObject = waitForIt().then((geoGebraObject) => {
+    const ggbObject = waitForIt(getText()).then((geoGebraObject) => {
         return geoGebraObject;
     });
+
     // load applet
     function loadApplet(matID) {
         const params = {
@@ -462,30 +482,8 @@ async function getGeoGebraGuts(matID) {
         applet.inject("ggb-element");
     }
 
-    function waitForIt() {
-        return new Promise((resolve) => {
-            if (document.querySelector("canvas")) {
-                console.log("found it", document.querySelector("canvas"));
-
-                return resolve(getText(matID));
-            }
-
-            const observer = new MutationObserver(() => {
-                if (document.querySelector("canvas")) {
-                    console.log("found it", document.querySelector("canvas"));
-                    observer.disconnect();
-                    resolve(getText(matID));
-                }
-            });
-
-            observer.observe(document.body, {
-                childList: true,
-                subtree: true,
-            });
-        });
-    }
     // download all text
-    async function getText(matID) {
+    async function getText() {
         // handles minimum/maximum text, point labels, titles
         const bigObject = {};
         await sleep(1000);
@@ -635,252 +633,333 @@ button3.addEventListener("click", () => {
     while (slideContainer.firstChild) {
         slideContainer.removeChild(slideContainer.firstChild);
     }
-    if (pastedJSON) {
-        workingJSON = JSON.parse(pastedJSON.value);
-        const workingKeys = Object.keys(workingJSON[language]);
-        for (const keys of workingKeys) {
-            const fragment = document.createDocumentFragment();
-            const slideTitle = fragment
-                .appendChild(document.createElement("div"))
-                .appendChild(document.createElement("h2"));
-            console.log(keys);
-            slideTitle.textContent = `Slide ${
-                Number(keys.replace("slide", "")) + 1
-            }`;
-            const components = workingJSON[language][keys].contents;
-            for (const component of Object.keys(components)) {
-                switch (components[component].componentType) {
-                    case "richtexteditor": {
-                        const rteDump = document.createElement("p");
-                        rteDump.innerHTML = components[component].text;
-                        fragment.appendChild(rteDump);
-                        break;
-                    }
-                    case "textbox": {
-                        const textDump = document.createElement("p");
-                        textDump.innerHTML = `<p>${components[component].text}</p>`;
-                        fragment.appendChild(textDump);
-                        break;
-                    }
-                    case "button": {
-                        const soloButton = document.createElement("button");
-                        soloButton.textContent = components[component].text;
-                        fragment.appendChild(soloButton);
-                        break;
-                    }
-                    case "buttongroup": {
-                        Object.values(components[component].buttons).forEach(
-                            (element) => {
+    // load applet
+    function loadApplet(ggbName, matID) {
+        const params = {
+            // eslint-disable-next-line camelcase
+            material_id: matID,
+            appName: "classic",
+            height: 650,
+            showToolBar: false,
+            showAlgebraInput: false,
+            showMenuBar: false,
+            enableRightClick: false,
+            language: "es",
+        };
+
+        // eslint-disable-next-line no-undef
+        const applet = new GGBApplet(params, true);
+        applet.inject(ggbName);
+    }
+    async function pauseForTranslation(
+        ggbName,
+        ggbGuts,
+        englishReusedText,
+        spanishReusedText
+    ) {
+        loadApplet(ggbName, ggbName.replace("ggb-element", ""));
+        const ggbObject = waitForIt(
+            translateApplet(
+                ggbName,
+                ggbGuts,
+                englishReusedText,
+                spanishReusedText
+            )
+        ).then((geoGebraObject) => {
+            // translateApplet(
+            //     "ggb-element".concat(
+            //         components[component].materialId
+            //     ),
+            //     components[component].geoGebraContent
+            // );
+            console.warn(ggbObject);
+            return geoGebraObject;
+        });
+    }
+    async function pauseEverything() {
+        if (pastedJSON) {
+            workingJSON = JSON.parse(pastedJSON.value);
+            const workingKeys = Object.keys(workingJSON[language]);
+            for (const keys of workingKeys) {
+                const fragment = document.createDocumentFragment();
+                const slideTitle = fragment
+                    .appendChild(document.createElement("div"))
+                    .appendChild(document.createElement("h2"));
+                console.log(keys);
+                slideTitle.textContent = `Slide ${
+                    Number(keys.replace("slide", "")) + 1
+                }`;
+                const components = workingJSON[language][keys].contents;
+
+                for (const component of Object.keys(components)) {
+                    switch (components[component].componentType) {
+                        case "richtexteditor": {
+                            const rteDump = document.createElement("p");
+                            rteDump.innerHTML = components[component].text;
+                            fragment.appendChild(rteDump);
+                            break;
+                        }
+                        case "textbox": {
+                            const textDump = document.createElement("p");
+                            textDump.innerHTML = `<p>${components[component].text}</p>`;
+                            fragment.appendChild(textDump);
+                            break;
+                        }
+                        case "button": {
+                            const soloButton = document.createElement("button");
+                            soloButton.textContent = components[component].text;
+                            fragment.appendChild(soloButton);
+                            break;
+                        }
+                        case "buttongroup": {
+                            Object.values(
+                                components[component].buttons
+                            ).forEach((element) => {
                                 const groupButton =
                                     document.createElement("button");
                                 groupButton.textContent = element;
                                 fragment.appendChild(groupButton);
-                            }
-                        );
-                        break;
-                    }
-                    case "select": {
-                        const selectDump = document.createElement("select");
-                        Object.values(components[component].select).forEach(
-                            (element) => {
-                                const optionDump =
-                                    document.createElement("option");
-                                optionDump.textContent = element;
-                                selectDump.appendChild(optionDump);
-                            }
-                        );
-                        fragment.appendChild(selectDump);
-                        break;
-                    }
-                    case "geogebra": {
-                        const ggbContainer = document.createElement("div");
-                        ggbContainer.setAttribute("class", "container");
-                        const ggb = document.createElement("div");
-                        ggb.setAttribute(
-                            "id",
-                            "ggb-element".concat(
-                                components[component].materialId
-                            )
-                        );
-                        fragment.appendChild(ggbContainer).appendChild(ggb);
-
-                        const params = {
-                            material_id: `${components[component].materialId}`,
-                            appName: "classic",
-                            scaleContainerClass: "container",
-                            showToolBar: false,
-                            showAlgebraInput: false,
-                            showMenuBar: false,
-                            enableRightClick: false,
-                            language: "es",
-                            showFullscreenButton: "true",
-                        };
-                        // if (components[component].)
-                        // eslint-disable-next-line no-undef
-                        const applet = new GGBApplet(params);
-                        applet.inject(
-                            "ggb-element".concat(
-                                components[component].materialId
-                            )
-                        );
-                        break;
-                    }
-                    case "pdfviewer": {
-                        const pdfAdvisory = document.createElement("p");
-                        pdfAdvisory.textContent = `This page contains a PDF with ID: ${components[component].id}.`;
-                        fragment.appendChild(pdfAdvisory);
-                        break;
-                    }
-                    case "complextable": {
-                        const tableDump = document.createElement("table");
-                        for (const rowNum of Object.keys(
-                            components[component].rows
-                        )) {
-                            const tableRow = document.createElement("tr");
-
-                            for (const colNum of Object.keys(
-                                components[component].rows[rowNum]
-                            )) {
-                                let tableCells = null;
-                                if (
-                                    components[component].rows[rowNum][colNum]
-                                        .scope
-                                ) {
-                                    tableCells = document.createElement("th");
-                                    tableCells.textContent =
-                                        components[component].rows[rowNum][
-                                            colNum
-                                        ];
-                                    const ariaCall = colNum.replace(
-                                        "Text",
-                                        "AriaLabel"
-                                    );
-                                    tableCells.setAttribute(
-                                        "ariaLabel",
-                                        components[component].ariaRows[rowNum][
-                                            ariaCall
-                                        ]
-                                    );
-                                } else {
-                                    tableCells = document.createElement("td");
-                                    tableCells.textContent =
-                                        components[component].rows[rowNum][
-                                            colNum
-                                        ];
-                                    const ariaCall = colNum.replace(
-                                        "Text",
-                                        "AriaLabel"
-                                    );
-                                    tableCells.setAttribute(
-                                        "ariaLabel",
-                                        components[component].ariaRows[rowNum][
-                                            ariaCall
-                                        ]
-                                    );
+                            });
+                            break;
+                        }
+                        case "select": {
+                            const selectDump = document.createElement("select");
+                            Object.values(components[component].select).forEach(
+                                (element) => {
+                                    const optionDump =
+                                        document.createElement("option");
+                                    optionDump.textContent = element;
+                                    selectDump.appendChild(optionDump);
                                 }
-                                tableRow.appendChild(tableCells);
-                            }
-                            tableDump.appendChild(tableRow);
+                            );
+                            fragment.appendChild(selectDump);
+                            break;
                         }
-                        fragment.appendChild(tableDump);
-                        break;
-                    }
-                    case "table": {
-                        const tableDump = document.createElement("table");
-                        const headerRow = document.createElement("tr");
+                        case "geogebra": {
+                            const ggbContainer = document.createElement("div");
+                            ggbContainer.setAttribute("class", "container");
+                            const ggb = document.createElement("div");
+                            ggb.setAttribute(
+                                "id",
+                                "ggb-element".concat(
+                                    components[component].materialId
+                                )
+                            );
+                            fragment.appendChild(ggbContainer).appendChild(ggb);
+                            console.log(workingJSON.english[keys].contents);
+                            const englishReusedText =
+                                workingJSON.english[keys].contents[component]
+                                    .geoGebraContent;
+                            const spanishReusedText =
+                                workingJSON.spanish[keys].contents[component]
+                                    .geoGebraContent;
+                            await pauseForTranslation(
+                                "ggb-element".concat(
+                                    components[component].materialId
+                                ),
+                                components[component].geoGebraContent,
+                                englishReusedText,
+                                spanishReusedText
+                            );
+                            // const params = {
+                            //     material_id: `${components[component].materialId}`,
+                            //     appName: "classic",
+                            //     scaleContainerClass: "container",
+                            //     showToolBar: false,
+                            //     showAlgebraInput: false,
+                            //     showMenuBar: false,
+                            //     enableRightClick: false,
+                            //     language: "es",
+                            //     showFullscreenButton: "true",
+                            // };
+                            // // eslint-disable-next-line no-undef
+                            // const applet = new GGBApplet(params);
+                            // applet.inject(
+                            //     "ggb-element".concat(
+                            //         components[component].materialId
+                            //     )
+                            // );
 
-                        for (const headerCell of Object.values(
-                            components[component].columns
-                        )) {
-                            const tableHeader = document.createElement("th");
-                            tableHeader.textContent = headerCell;
-                            headerRow.appendChild(tableHeader);
+                            break;
                         }
-                        tableDump.appendChild(headerRow);
-                        for (const rowNum of Object.keys(
-                            components[component].rows
-                        )) {
-                            const tableRow = document.createElement("tr");
-
-                            for (const colNum of Object.keys(
-                                components[component].rows[rowNum]
+                        case "pdfviewer": {
+                            const pdfAdvisory = document.createElement("p");
+                            pdfAdvisory.textContent = `This page contains a PDF with ID: ${components[component].id}.`;
+                            fragment.appendChild(pdfAdvisory);
+                            break;
+                        }
+                        case "complextable": {
+                            const tableDump = document.createElement("table");
+                            for (const rowNum of Object.keys(
+                                components[component].rows
                             )) {
-                                const tableCells = document.createElement("td");
-                                tableCells.textContent =
-                                    components[component].rows[rowNum][colNum];
-                                const ariaCall = colNum.replace(
-                                    "Text",
-                                    "AriaLabel"
-                                );
-                                tableCells.setAttribute(
-                                    "ariaLabel",
-                                    components[component].ariaRows[rowNum][
-                                        ariaCall
-                                    ]
-                                );
-                                tableRow.appendChild(tableCells);
+                                const tableRow = document.createElement("tr");
+
+                                for (const colNum of Object.keys(
+                                    components[component].rows[rowNum]
+                                )) {
+                                    let tableCells = null;
+                                    if (
+                                        components[component].rows[rowNum][
+                                            colNum
+                                        ].scope
+                                    ) {
+                                        tableCells =
+                                            document.createElement("th");
+                                        tableCells.textContent =
+                                            components[component].rows[rowNum][
+                                                colNum
+                                            ];
+                                        const ariaCall = colNum.replace(
+                                            "Text",
+                                            "AriaLabel"
+                                        );
+                                        tableCells.setAttribute(
+                                            "ariaLabel",
+                                            components[component].ariaRows[
+                                                rowNum
+                                            ][ariaCall]
+                                        );
+                                    } else {
+                                        tableCells =
+                                            document.createElement("td");
+                                        tableCells.textContent =
+                                            components[component].rows[rowNum][
+                                                colNum
+                                            ];
+                                        const ariaCall = colNum.replace(
+                                            "Text",
+                                            "AriaLabel"
+                                        );
+                                        tableCells.setAttribute(
+                                            "ariaLabel",
+                                            components[component].ariaRows[
+                                                rowNum
+                                            ][ariaCall]
+                                        );
+                                    }
+                                    tableRow.appendChild(tableCells);
+                                }
+                                tableDump.appendChild(tableRow);
                             }
-                            tableDump.appendChild(tableRow);
+                            fragment.appendChild(tableDump);
+                            break;
                         }
-                        fragment.appendChild(tableDump);
-                        break;
-                    }
-                    case "image": {
-                        const imageDump = document.createElement("img");
-                        imageDump.src = components[component].src;
-                        imageDump.alt = components[component].alt;
-                        imageDump.setAttribute(
-                            "style",
-                            "background-color: rgba(255, 255, 255, 1);color:rgba(0, 0, 0, 1)"
-                        );
-                        if (
-                            components[component][component.concat("AriaLabel")]
-                        ) {
+                        case "table": {
+                            const tableDump = document.createElement("table");
+                            const headerRow = document.createElement("tr");
+
+                            for (const headerCell of Object.values(
+                                components[component].columns
+                            )) {
+                                const tableHeader =
+                                    document.createElement("th");
+                                tableHeader.textContent = headerCell;
+                                headerRow.appendChild(tableHeader);
+                            }
+                            tableDump.appendChild(headerRow);
+                            for (const rowNum of Object.keys(
+                                components[component].rows
+                            )) {
+                                const tableRow = document.createElement("tr");
+
+                                for (const colNum of Object.keys(
+                                    components[component].rows[rowNum]
+                                )) {
+                                    const tableCells =
+                                        document.createElement("td");
+                                    tableCells.textContent =
+                                        components[component].rows[rowNum][
+                                            colNum
+                                        ];
+                                    const ariaCall = colNum.replace(
+                                        "Text",
+                                        "AriaLabel"
+                                    );
+                                    tableCells.setAttribute(
+                                        "ariaLabel",
+                                        components[component].ariaRows[rowNum][
+                                            ariaCall
+                                        ]
+                                    );
+                                    tableRow.appendChild(tableCells);
+                                }
+                                tableDump.appendChild(tableRow);
+                            }
+                            fragment.appendChild(tableDump);
+                            break;
+                        }
+                        case "image": {
+                            const imageDump = document.createElement("img");
+                            imageDump.src = components[component].src;
+                            imageDump.alt = components[component].alt;
                             imageDump.setAttribute(
-                                "ariaLabel",
+                                "style",
+                                "background-color: rgba(255, 255, 255, 1);color:rgba(0, 0, 0, 1)"
+                            );
+                            if (
                                 components[component][
                                     component.concat("AriaLabel")
                                 ]
-                            );
+                            ) {
+                                imageDump.setAttribute(
+                                    "ariaLabel",
+                                    components[component][
+                                        component.concat("AriaLabel")
+                                    ]
+                                );
+                            }
+                            fragment.appendChild(imageDump);
+                            const copyright = document.createElement("p");
+                            copyright.textContent =
+                                components[component].copyright;
+                            fragment.appendChild(copyright);
+                            break;
                         }
-                        fragment.appendChild(imageDump);
-                        const copyright = document.createElement("p");
-                        copyright.textContent = components[component].copyright;
-                        fragment.appendChild(copyright);
-                        break;
+                        default:
+                            break;
                     }
-                    default:
-                        break;
                 }
-            }
 
-            slideData.appendChild(fragment);
+                slideData.appendChild(fragment);
+            }
         }
     }
+    pauseEverything();
 });
 
 // translate applet
-function translateApplet() {
+async function translateApplet(
+    ggbName,
+    translatedText,
+    englishReusedText,
+    spanishReusedText
+) {
+    console.log("NAME", ggbName);
     // get data from textarea
-    const translatedText = pastedJSON.value;
     const language = "spanish";
+    await sleep(2000);
+
     if (!ggbApplet.exists("defaultGGBLanguage")) {
         ggbApplet.evalCommand("defaultGGBLanguage='Spanish'");
     }
 
     // parse the string into a JSON object
-    function prettyPrint(ugly) {
-        const obj = JSON.parse(ugly);
-        return obj;
-    }
-    const prettyAltText = prettyPrint(translatedText);
-
+    // function prettyPrint(ugly) {
+    //     const obj = JSON.parse(ugly);
+    //     return obj;
+    // }
+    // const prettyAltText = prettyPrint(translatedText);
+    const prettyAltText = pastedJSON.value;
+    console.warn(prettyAltText, typeof prettyAltText);
     // updates alt text with specified language
-    function handleText() {
+    function handleText(englishReusedText, spanishReusedText, translatedText) {
+        console.log(reusedText);
+        console.log(prettyAltText);
         const reusedKeysArray = Object.keys(reusedText.english);
         reusedKeysArray.forEach((key) => {
-            prettyAltText.english[key] = reusedText.english[key];
-            prettyAltText.spanish[key] = reusedText.spanish[key];
+            englishReusedText[key] = reusedText.english[key];
+            spanishReusedText[key] = reusedText.spanish[key];
         });
 
         // handles minimum/maximum text, point labels, titles
@@ -891,10 +970,10 @@ function translateApplet() {
                 // if text
                 case "text": {
                     if (ggbApplet.isIndependent(el)) {
-                        ggbApplet.setTextValue(el, prettyAltText[language][el]);
+                        ggbApplet.setTextValue(el, translatedText[el]);
                     } else {
                         ggbApplet.evalCommand(
-                            el.concat("=", prettyAltText[language][el])
+                            el.concat("=", translatedText[el])
                         );
                     }
                     break;
@@ -902,7 +981,7 @@ function translateApplet() {
                 case "list": {
                     const listXML = ggbApplet.getXML(el);
                     if (listXML.includes("comboBox")) {
-                        const string = prettyAltText[language][el];
+                        const string = translatedText[el];
                         let xmlstring = ggbApplet.getXML();
                         const parser = new DOMParser();
                         const xmldom = parser.parseFromString(
@@ -940,7 +1019,7 @@ function translateApplet() {
                             matches.forEach((element, index) => {
                                 xmlstring = xmlstring.replace(
                                     element,
-                                    prettyAltText[language].conditions[index]
+                                    translatedText.conditions[index]
                                 );
                             });
                         }
@@ -953,14 +1032,14 @@ function translateApplet() {
             if (ggbApplet.getCaption(el) !== "") {
                 ggbApplet.setCaption(
                     el,
-                    prettyAltText[language][el.concat("CaptionText")]
+                    translatedText[el.concat("CaptionText")]
                 );
             }
         });
     }
 
     // take in globalJS again,
-    function handleGlobalJS() {
+    function handleGlobalJS(englishReusedText, spanishReusedText) {
         let pulledGlobalJS = getGlobalJS();
         // if you find ReadText(something), pull the text
         function replaceReadText() {
@@ -1000,7 +1079,7 @@ function translateApplet() {
 
         // replaceReadText();
         // replaceKIConst();
-        handleText(translatedText);
+        handleText(englishReusedText, spanishReusedText, translatedText);
 
         const fullAppletJSON = ggbApplet.getFileJSON();
 
@@ -1015,7 +1094,8 @@ function translateApplet() {
             return false;
         });
 
-        // fullAppletJSON.archive[archiveNum].fileContent = pastedJS.value;
+        fullAppletJSON.archive[archiveNum].fileContent =
+            translatedText.globalJSText;
 
         const params = {
             material_id: "d5mfqpx5",
@@ -1033,23 +1113,23 @@ function translateApplet() {
 
         // eslint-disable-next-line no-undef
         const applet = new GGBApplet(params);
-        applet.inject("ggb-element");
+        applet.inject(ggbName);
     }
 
-    //  handleGlobalJS();
+    handleGlobalJS(englishReusedText, spanishReusedText);
 }
 
 // download applet
-function downloadApplet() {
-    ggbApplet.evalCommand("ScreenDimensions = Corner(5)");
-    ggbApplet.getBase64(function (str64) {
-        const element = document.createElement("a");
-        element.href = window.URL.createObjectURL(
-            new Blob([str64], {
-                type: "application/vnd.geogebra.file",
-            })
-        );
-        element.download = input1.value + ".ggb";
-        element.click();
-    });
-}
+// function downloadApplet() {
+//     ggbApplet.evalCommand("ScreenDimensions = Corner(5)");
+//     ggbApplet.getBase64(function (str64) {
+//         const element = document.createElement("a");
+//         element.href = window.URL.createObjectURL(
+//             new Blob([str64], {
+//                 type: "application/vnd.geogebra.file",
+//             })
+//         );
+//         element.download = input1.value + ".ggb";
+//         element.click();
+//     });
+// }

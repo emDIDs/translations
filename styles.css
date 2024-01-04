@@ -57,7 +57,9 @@ body {
 }
 
 header {
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 main {
@@ -91,4 +93,48 @@ button:hover {
 }
 button:focus {
     background-color: rgb(106, 115, 123);
+}
+.external-button {
+    margin: 10px;
+    background-color: white;
+    color: rgb(0, 11, 92);
+    font-family: "CircularStd", sans-serif;
+    font-size: 21px;
+    line-height: 1.5;
+    font-weight: 700;
+    padding-left: 16px;
+    padding-right: 16px;
+    border: rgb(0, 11, 92) 2px solid;
+}
+.external-button:focus {
+    background-color: rgb(106, 115, 123);
+    color: white;
+}
+
+input {
+    min-height: 32px;
+}
+
+select {
+    align-items: center;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    height: 68px;
+    padding: 8px;
+    margin-bottom: 8px;
+    visibility: visible;
+    width: 466px;
+    font-family: CircularStd, sans-serif;
+    font-size: 21px;
+    font-weight: 400;
+    line-height: 31.5px;
+    color: rgb(41, 43, 44);
+    outline-color: rgb(41, 43, 44);
+    outline-offset: 0px;
+    outline-style: none;
+    outline-width: 0px;
+    column-gap: 4px;
+    overflow-wrap: break-word;
+    row-gap: 4px;
 }

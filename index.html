@@ -15,27 +15,25 @@
     </head>
     <body>
         <header>
-            <div>
                 <img
                     src="./Great Minds Cat.jpg"
                     alt="Cat face in Great Minds logo"
                     style="max-height: 100px" />
                 <h1>Cognito Authoring Translation System</h1>
-            </div>
         </header>
         <main>
             <label for="lessonID">Enter GlobalID:</label>
             <input id="lessonID" type="text" placeholder="GlobalID" size="40" />
-            <button id="id-submit">Log Lesson Data in Console</button>
-            <button id="pull-text">Download All Text</button>
+            <button id="id-submit" class="external-button">Log Lesson Data in Console</button>
+            <button id="pull-text" class="external-button">Download All Text</button>
             <a target="_blank" id="downloadJSON-link"></a>
             <div id="ggb-element"></div>
             <p>Enter JSON object below:</p>
-            <textarea rows="4" cols="50" id="json-object"></textarea>
+            <textarea rows="4" cols="50" id="json-object" value=""></textarea>
             <section
                 id="slide-data"
                 style="border:2px white solid; margin:2%;padding:2%"></section>
-            <button id="translate">Translate to Spanish</button>
+            <button id="translate" class="external-button">Translate to Spanish</button>
             <!-- <button id="download">Download Spanish Applet</button> -->
         </main>
         <script src="./script.js" type="text/JavaScript"></script>

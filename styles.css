@@ -1,0 +1,58 @@
+@font-face {
+    font-family: "CircularStd";
+    src: local("./fonts/CircularStd-Black.otf") format("opentype");
+    font-weight: 900;
+}
+@font-face {
+    font-family: "CircularStd";
+    src: local("./fonts/CircularStd-BlackItalic.otf") format("opentype");
+    font-weight: 900;
+    font-style: italic;
+}
+@font-face {
+    font-family: "CircularStd";
+    src: local("./fonts/CircularStd-Bold.otf") format("opentype");
+    font-weight: 700;
+}
+@font-face {
+    font-family: "CircularStd";
+    src: local("./fonts/CircularStd-BoldItalic.otf") format("opentype");
+    font-weight: 700;
+    font-style: italic;
+}
+@font-face {
+    font-family: "CircularStd";
+    src: local("./fonts/CircularStd-Book.otf") format("opentype");
+    font-weight: 400;
+    font-style: normal;
+}
+@font-face {
+    font-family: "CircularStd";
+    src: local("./fonts/CircularStd-BookItalic.otf") format("opentype");
+    font-weight: 400;
+    font-style: italic;
+}
+@font-face {
+    font-family: "CircularStd";
+    src: local("./fonts/CircularStd-Medium.otf") format("opentype");
+    font-weight: 500;
+    font-style: normal;
+}
+@font-face {
+    font-family: "CircularStd";
+    src: local("./fonts/CircularStd-MediumItalic.otf") format("opentype");
+    font-weight: 500;
+    font-style: italic;
+}
+@font-face {
+    font-family: "Short Stack";
+    src: local("./fonts/ShortStack-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+}
+
+body {
+    font-family: "CircularStd", sans-serif;
+    font-size: 16px;
+}
+

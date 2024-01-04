@@ -7,10 +7,9 @@
         <title>Cognito Authoring Translation System</title>
         <!-- <link
             rel="stylesheet"
-            href="https://digital.uat.greatminds.dev/lessons/authoring/static/global.css" /> -->
-        <link
-            rel="stylesheet"
-            href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css" />
+            href="https://digital.greatminds.org/lessons/authoring/static/global.css" /> -->
+        <link rel="stylesheet" href="./styles.css" />
+        <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css" /> -->
         <link rel="icon" href="./favicon.PNG" type="image" />
         <script src="https://www.geogebra.org/apps/deployggb.js"></script>
     </head>
@@ -25,13 +24,12 @@
             </div>
             <label for="lessonID">Enter GlobalID:</label>
             <input id="lessonID" type="text" placeholder="GlobalID" size="40" />
-            <!-- <button id="id-submit">Log Lesson Data in Console</button> -->
+            <button id="id-submit">Log Lesson Data in Console</button>
             <button id="pull-text">Download All Text</button>
             <a target="_blank" id="downloadJSON-link"></a>
+            <div id="ggb-element"></div>
             <p>Enter JSON object below:</p>
-            <textarea id="json-object"></textarea>
-            <p>Enter JavaScript below:</p>
-            <textarea id="javascript"></textarea>
+            <textarea rows="4" cols="50" id="json-object"></textarea>
             <section
                 id="slide-data"
                 style="border:2px white solid; margin:2%;padding:2%"></section>

@@ -383,7 +383,7 @@ const reusedText = {
             "Instructions. Press space to open the instructions.",
         yAxisY: 'Text("y", YAxisTop + (4xpixel, -1 ypixel), true, true)',
         escText:
-            '"" + (If(escTextCount < 2, "Press the escape key to exit the interactive and return to the page.", ""))',
+            "Press the escape key to exit the interactive and return to the page.",
         defaultGGBLanguage: "English",
         keyboardInstructions: "Keyboard instructions enabled",
         displayedInstructionsText:
@@ -404,7 +404,7 @@ const reusedText = {
             "Instrucciones. Presiona la barra de espacio para abrir las instrucciones.",
         yAxisY: 'Text("y", YAxisTop + (4xpixel, -1 ypixel), true, true)',
         escText:
-            '"" + (If(escTextCount < 2, "Presiona la tecla de escape para salir de la actividad interactiva y regresar a la página.", ""))',
+            "Presiona la tecla de escape para salir de la actividad interactiva y regresar a la página.",
         defaultGGBLanguage: "Spanish",
         keyboardInstructions: "Instrucciones de teclado habilitadas",
         displayedInstructionsText:

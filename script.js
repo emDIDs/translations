@@ -1,26 +1,42 @@
 // pull elements from document and name them
 const pastedJSON = document.getElementById("json-object");
+const filePicker = document.getElementById("upload");
 const input1 = document.getElementById("lessonID");
 const button1 = document.getElementById("id-submit");
 const button2 = document.getElementById("pull-text");
 const button3 = document.getElementById("translate");
+const button4 = document.getElementById("download");
 const slideData = document.getElementById("slide-data");
 const sleep = (ms = 0) => new Promise((resolve) => setTimeout(resolve, ms));
 
-// const button4 = document.getElementById("download");
 const link1 = document.getElementById("downloadJSON-link");
 // input1.value = "758108c1-42f4-441b-9db2-dd528b088eca";
+filePicker.addEventListener("change", readFile, false);
+
 let workingJSON = {};
 const language = "spanish";
 // fetch lesson
 const bigObject = {
     english: {},
 };
+function readFile(event) {
+    const uploadedFiles = event.target.files;
+    const firstFile = uploadedFiles[0];
+    const reader = new FileReader();
+    const showFile = (file) => {
+        pastedJSON.innerHTML = file.target.result;
+    };
+    const handleLoadedFile = () => {
+        return showFile;
+    };
+    reader.onload = handleLoadedFile(firstFile);
+    reader.readAsText(firstFile);
+}
 
 function gatherData(download = false) {
     const globalID = input1.value;
     // TODO: add share and submit
-    // TODO: add geogebra ID
+
     // header.innerHTML = "Report Generating...";
     // paragraph.innerHTML = "";
     try {
@@ -300,6 +316,7 @@ function gatherData(download = false) {
                                                     rowNum
                                                 ][cellNum].value;
                                         }
+                                        // TODO: Add scope scrape here
                                         bigObject.english[
                                             "slide".concat(item)
                                         ].contents[componentName].ariaRows[
@@ -682,10 +699,15 @@ button3.addEventListener("click", () => {
             const workingKeys = Object.keys(workingJSON[language]);
             for (const keys of workingKeys) {
                 const fragment = document.createDocumentFragment();
+                const slideSeparator = document.createElement("div");
                 const slideTitle = fragment
-                    .appendChild(document.createElement("div"))
+                    .appendChild(slideSeparator)
                     .appendChild(document.createElement("h2"));
                 console.log(keys);
+                slideSeparator.setAttribute(
+                    "style",
+                    "border-top:1px black solid; margin-top:10px"
+                );
                 slideTitle.textContent = `Slide ${
                     Number(keys.replace("slide", "")) + 1
                 }`;
@@ -1119,17 +1141,22 @@ async function translateApplet(
     handleGlobalJS(englishReusedText, spanishReusedText);
 }
 
+// TODO: Fix function to download and name all applets appropriately
 // download applet
-// function downloadApplet() {
-//     ggbApplet.evalCommand("ScreenDimensions = Corner(5)");
-//     ggbApplet.getBase64(function (str64) {
-//         const element = document.createElement("a");
-//         element.href = window.URL.createObjectURL(
-//             new Blob([str64], {
-//                 type: "application/vnd.geogebra.file",
-//             })
-//         );
-//         element.download = input1.value + ".ggb";
-//         element.click();
-//     });
-// }
+function downloadApplet() {
+    ggbApplet.evalCommand("ScreenDimensions = Corner(5)");
+    ggbApplet.getBase64(function (str64) {
+        const element = document.createElement("a");
+        element.href = window.URL.createObjectURL(
+            new Blob([str64], {
+                type: "application/vnd.geogebra.file",
+            })
+        );
+        element.download = input1.value + ".ggb";
+        element.click();
+    });
+}
+
+button4.addEventListener("click", () => {
+    downloadApplet();
+});

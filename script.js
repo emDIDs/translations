@@ -380,7 +380,13 @@ function gatherData(download = false) {
                 document.querySelector(".applet_scaler").remove();
                 document.querySelector("#ggb-element").style = "height:0";
                 if (download) {
-                    downloadData();
+                    downloadData({
+                        title: data.title,
+                        level: data.level,
+                        module: data.module,
+                        topic: data.topic,
+                        lesson: data.lesson,
+                    });
                 } else {
                     console.log(bigObject);
                 }
@@ -389,12 +395,25 @@ function gatherData(download = false) {
         console.error(error);
     }
 }
-function downloadData() {
+function downloadData({ title, level, module, topic, lesson }) {
     // get all of the text and download it
     const blob = new Blob([JSON.stringify(bigObject)], { type: "text/json" });
     link1.href = window.URL.createObjectURL(blob);
     const todaysDate = new Date().toDateString().slice(4);
-    link1.download = "AllText-".concat(todaysDate, ".JSON");
+    link1.download = "AllText - ".concat(
+        title,
+        " - G",
+        level,
+        "M",
+        module,
+        "T",
+        topic,
+        "L",
+        lesson,
+        " - ",
+        todaysDate,
+        ".JSON"
+    );
     link1.click();
 }
 const reusedText = {

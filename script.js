@@ -376,8 +376,12 @@ function gatherData(download = false) {
                     }
                 }
                 bigObject.spanish = bigObject.english;
-                document.querySelector(".applet_scaler").remove();
-                document.querySelector("#ggb-element").style = "height:0";
+                if (document.querySelector(".applet_scaler")) {
+                    document.querySelector(".applet_scaler").remove();
+                }
+                if (document.querySelector("#ggb-element")) {
+                    document.querySelector("#ggb-element").style = "height:0";
+                }
                 if (download) {
                     downloadData({
                         title: data.title,

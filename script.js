@@ -525,14 +525,16 @@ async function getGeoGebraGuts(matID) {
     async function getText() {
         // handles minimum/maximum text, point labels, titles
         const bigObject = {};
-        await sleep(1000);
+        await sleep(2000);
 
         // handle ariaLabel
-        const ariaLabel = document
-            .querySelector(`canvas`)
-            .getAttribute("aria-label");
+        if (document.querySelector(`canvas`)) {
+            const ariaLabel = document
+                .querySelector(`canvas`)
+                .getAttribute("aria-label");
 
-        bigObject.ariaLabelForGGB = ariaLabel;
+            bigObject.ariaLabelForGGB = ariaLabel;
+        }
 
         // handle all text objects, lists, and anything that has a caption
         const allItems = ggbApplet.getAllObjectNames();

@@ -7,7 +7,10 @@ const button2 = document.getElementById("pull-text");
 const button3 = document.getElementById("translate");
 const button4 = document.getElementById("download");
 const slideData = document.getElementById("slide-data");
-const sleep = (ms = 0) => new Promise((resolve) => setTimeout(resolve, ms));
+const sleep = (ms = 0) =>
+    new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
 
 const link1 = document.getElementById("downloadJSON-link");
 // input1.value = "758108c1-42f4-441b-9db2-dd528b088eca";
@@ -50,6 +53,7 @@ function gatherData(download = false) {
         )
             .then((response) => response.json())
             .then(async function (data) {
+                console.log(data);
                 for (const item in data.slides) {
                     const { contents } = data.slides[item];
                     bigObject.english["slide".concat(item)] = {
@@ -80,6 +84,9 @@ function gatherData(download = false) {
                             ].componentType
                         ) {
                             case "geogebra": {
+                                const innerds = await getGeoGebraGuts(
+                                    contents[comp].config.materialId
+                                );
                                 bigObject.english[
                                     "slide".concat(item)
                                 ].contents[componentName].materialId =
@@ -87,11 +94,15 @@ function gatherData(download = false) {
                                 bigObject.english[
                                     "slide".concat(item)
                                 ].contents[componentName].geoGebraContent =
-                                    await getGeoGebraGuts(
-                                        contents[comp].config.materialId
-                                    );
-                                await sleep(1000);
-                                ggbApplet.remove();
+                                    innerds;
+                                waitForIt(
+                                    bigObject.english["slide".concat(item)]
+                                        .contents[componentName]
+                                        .geoGebraContent === innerds
+                                ).then(() => {
+                                    console.log("all done");
+                                    ggbApplet.remove();
+                                }).then;
                                 break;
                             }
                             case "textbox":
@@ -480,19 +491,17 @@ function getGlobalJS() {
     return archiveGlobalJS;
 }
 
-function waitForIt(functionName) {
+function waitForIt(condition) {
     return new Promise((resolve) => {
-        if (document.querySelector("canvas")) {
-            return resolve(functionName);
+        if (condition) {
+            return resolve();
         }
-
         const observer = new MutationObserver(() => {
-            if (document.querySelector("canvas")) {
+            if (condition) {
                 observer.disconnect();
-                resolve(functionName);
+                resolve();
             }
         });
-
         observer.observe(document.body, {
             childList: true,
             subtree: true,
@@ -502,9 +511,14 @@ function waitForIt(functionName) {
 async function getGeoGebraGuts(matID) {
     // boilerplate language - strip it out so translators don't keep translating it
     loadApplet(matID);
-    const ggbObject = waitForIt(getText()).then((geoGebraObject) => {
-        return geoGebraObject;
-    });
+    const ggbObject = waitForIt(
+        document.querySelector("canvas") &&
+            document.querySelector("canvas").hasAttribute("aria-label")
+    )
+        .then(() => getText())
+        .then((geoGebraObject) => {
+            return geoGebraObject;
+        });
 
     // load applet
     function loadApplet(matID) {
@@ -525,143 +539,139 @@ async function getGeoGebraGuts(matID) {
         applet.inject("ggb-element");
     }
 
-    // download all text
-    async function getText() {
-        // handles minimum/maximum text, point labels, titles
-        const bigObject = {};
-        await sleep(2000);
-
-        // handle ariaLabel
-        if (document.querySelector(`canvas`)) {
-            const ariaLabel = document
-                .querySelector(`canvas`)
-                .getAttribute("aria-label");
-
-            bigObject.ariaLabelForGGB = ariaLabel;
-        }
-
-        // handle all text objects, lists, and anything that has a caption
-        const allItems = ggbApplet.getAllObjectNames();
-        allItems.forEach(function (el) {
-            const type = ggbApplet.getObjectType(el);
-            switch (type) {
-                // for text, if independent get the value otherwise get the definition
-                case "text": {
-                    if (
-                        ggbApplet.isIndependent(el) &&
-                        !Object.keys(reusedText.english).includes(el)
-                    ) {
-                        bigObject[el] = ggbApplet
-                            .getValueString(el)
-                            .replace(/(\r\n|\n|\r)/gm, "");
-                    } else if (!Object.keys(reusedText.english).includes(el)) {
-                        bigObject[el] = ggbApplet
-                            .getDefinitionString(el)
-                            .replace(/(\r\n|\n|\r)/gm, "");
-                    }
-                    break;
-                }
-                // for list, get the definition string, then find out if anyone used SelectedElement instead of SelectedIndex
-                case "list": {
-                    const listXML = ggbApplet.getXML(el);
-
-                    // if list is drawn as a dropdown
-                    if (listXML.includes("comboBox")) {
-                        bigObject[el] = ggbApplet.getDefinitionString(el);
-                        const allXML = ggbApplet.getXML();
-                        const parser = new DOMParser();
-                        const xmldom = parser.parseFromString(
-                            allXML,
-                            "application/xml"
-                        );
-
-                        // if someone used SelectedElement instead of SelectedIndex, find it
-                        const value = xmldom.querySelectorAll(
-                            `condition[showObject*="SelectedElement"]`
-                        );
-                        if (value.length > 0) {
-                            const matches = allXML.match(
-                                /<condition showObject="SelectedElement\[.*\].*&quot;(.*)&quot;.*"/g
-                            );
-                            bigObject.conditions = {
-                                ...matches,
-                            };
-                        }
-                    }
-                    break;
-                }
-                // if something has a caption, put that caption
-                default: {
-                    if (
-                        ggbApplet.getCaption(el) !== "" &&
-                        !Object.keys(reusedText.english).includes(
-                            el.concat("CaptionText")
-                        )
-                    ) {
-                        bigObject[el.concat("CaptionText")] =
-                            ggbApplet.getCaption(el);
-                    }
-                    break;
-                }
-            }
-        });
-
-        // search through globalJS for any alt text
-        const pulledGlobalJS = getGlobalJS();
-
-        // removes all non-line break space
-        const cleanedJS = pulledGlobalJS.replace(
-            /([^\n][^\S\r\n])[^\S\r\n]+/g,
-            ""
-        );
-        const soapyComments = cleanedJS.replace(/\/\//gm, "");
-        const soapyQuotes = soapyComments.replace(/\\"/gm, "'");
-
-        // removes all line breaks
-        const squeakyClean = soapyQuotes.replace(/(\r\n|\n|\r)/gm, "");
-        bigObject.globalJSText = squeakyClean;
-
-        // if you find ReadText(something), pull the text
-        function pullReadText() {
-            // matches anything that starts with the words ReadText
-            const allMatches = squeakyClean.match(/ReadText\((.*?)\)/g);
-
-            // if matches exist, Put them into their own section of globalJSText
-            if (allMatches && allMatches.length !== 0) {
-                allMatches.forEach(function (element, index) {
-                    bigObject.globalJSText["GGBReadText" + index] = element
-                        .replace(/([^\n][^\S\r\n])[^\S\r\n]+/g, "")
-                        .trim();
-                });
-            }
-            // get keyboard instructions constant, if something has been changed, include it
-            const allKeyboardInstructions = squeakyClean.match(
-                /const keyboardInstructions = \{.*?\}/g
-            );
-            if (
-                allKeyboardInstructions &&
-                reusedText.keyboardInstructionsConst !==
-                    allKeyboardInstructions[0].replace(
-                        "const keyboardInstructions = ",
-                        ""
-                    )
-            ) {
-                bigObject.keyboardInstructionsConst = allKeyboardInstructions[0]
-                    .replace("const keyboardInstructions = ", "")
-                    .replace(
-                        '// A: "Presiona las teclas de flecha para mover este punto.", // example for a point',
-                        ""
-                    )
-                    .replaceAll("// example for a point", "");
-            }
-        }
-
-        pullReadText();
-        return bigObject;
-    }
     return ggbObject;
 }
+// download all text
+async function getText() {
+    // handles minimum/maximum text, point labels, titles
+    const bigObject = {};
+    await sleep(2000);
+    console.log("Something");
+    // handle ariaLabel
+    if (document.querySelector(`canvas`)) {
+        const ariaLabel = document
+            .querySelector(`canvas`)
+            .getAttribute("aria-label");
 
+        bigObject.ariaLabelForGGB = ariaLabel;
+    }
+
+    // handle all text objects, lists, and anything that has a caption
+    const allItems = ggbApplet.getAllObjectNames();
+    allItems.forEach(function (el) {
+        const type = ggbApplet.getObjectType(el);
+        switch (type) {
+            // for text, if independent get the value otherwise get the definition
+            case "text": {
+                if (
+                    ggbApplet.isIndependent(el) &&
+                    !Object.keys(reusedText.english).includes(el)
+                ) {
+                    bigObject[el] = ggbApplet
+                        .getValueString(el)
+                        .replace(/(\r\n|\n|\r)/gm, "");
+                } else if (!Object.keys(reusedText.english).includes(el)) {
+                    bigObject[el] = ggbApplet
+                        .getDefinitionString(el)
+                        .replace(/(\r\n|\n|\r)/gm, "");
+                }
+                break;
+            }
+            // for list, get the definition string, then find out if anyone used SelectedElement instead of SelectedIndex
+            case "list": {
+                const listXML = ggbApplet.getXML(el);
+
+                // if list is drawn as a dropdown
+                if (listXML.includes("comboBox")) {
+                    bigObject[el] = ggbApplet.getDefinitionString(el);
+                    const allXML = ggbApplet.getXML();
+                    const parser = new DOMParser();
+                    const xmldom = parser.parseFromString(
+                        allXML,
+                        "application/xml"
+                    );
+
+                    // if someone used SelectedElement instead of SelectedIndex, find it
+                    const value = xmldom.querySelectorAll(
+                        `condition[showObject*="SelectedElement"]`
+                    );
+                    if (value.length > 0) {
+                        const matches = allXML.match(
+                            /<condition showObject="SelectedElement\[.*\].*&quot;(.*)&quot;.*"/g
+                        );
+                        bigObject.conditions = {
+                            ...matches,
+                        };
+                    }
+                }
+                break;
+            }
+            // if something has a caption, put that caption
+            default: {
+                if (
+                    ggbApplet.getCaption(el) !== "" &&
+                    !Object.keys(reusedText.english).includes(
+                        el.concat("CaptionText")
+                    )
+                ) {
+                    bigObject[el.concat("CaptionText")] =
+                        ggbApplet.getCaption(el);
+                }
+                break;
+            }
+        }
+    });
+
+    // search through globalJS for any alt text
+    const pulledGlobalJS = getGlobalJS();
+
+    // removes all non-line break space
+    const cleanedJS = pulledGlobalJS.replace(/([^\n][^\S\r\n])[^\S\r\n]+/g, "");
+    const soapyComments = cleanedJS.replace(/\/\//gm, "");
+    const soapyQuotes = soapyComments.replace(/\\"/gm, "'");
+
+    // removes all line breaks
+    const squeakyClean = soapyQuotes.replace(/(\r\n|\n|\r)/gm, "");
+    bigObject.globalJSText = squeakyClean;
+
+    // if you find ReadText(something), pull the text
+    function pullReadText() {
+        // matches anything that starts with the words ReadText
+        const allMatches = squeakyClean.match(/ReadText\((.*?)\)/g);
+
+        // if matches exist, Put them into their own section of globalJSText
+        if (allMatches && allMatches.length !== 0) {
+            allMatches.forEach(function (element, index) {
+                bigObject.globalJSText["GGBReadText" + index] = element
+                    .replace(/([^\n][^\S\r\n])[^\S\r\n]+/g, "")
+                    .trim();
+            });
+        }
+        // get keyboard instructions constant, if something has been changed, include it
+        const allKeyboardInstructions = squeakyClean.match(
+            /const keyboardInstructions = \{.*?\}/g
+        );
+        if (
+            allKeyboardInstructions &&
+            reusedText.keyboardInstructionsConst !==
+                allKeyboardInstructions[0].replace(
+                    "const keyboardInstructions = ",
+                    ""
+                )
+        ) {
+            bigObject.keyboardInstructionsConst = allKeyboardInstructions[0]
+                .replace("const keyboardInstructions = ", "")
+                .replace(
+                    '// A: "Presiona las teclas de flecha para mover este punto.", // example for a point',
+                    ""
+                )
+                .replaceAll("// example for a point", "");
+        }
+    }
+
+    pullReadText();
+    return bigObject;
+}
 button1.addEventListener("click", () => {
     gatherData();
 });
@@ -703,22 +713,27 @@ button3.addEventListener("click", () => {
     ) {
         loadApplet(ggbName, ggbName.replace("ggb-element", ""));
         const ggbObject = waitForIt(
-            translateApplet(
-                ggbName,
-                ggbGuts,
-                englishReusedText,
-                spanishReusedText
+            document.querySelector("canvas") &&
+                document.querySelector("canvas").hasAttribute("aria-label")
+        )
+            .then(() =>
+                translateApplet(
+                    ggbName,
+                    ggbGuts,
+                    englishReusedText,
+                    spanishReusedText
+                )
             )
-        ).then((geoGebraObject) => {
-            // translateApplet(
-            //     "ggb-element".concat(
-            //         components[component].materialId
-            //     ),
-            //     components[component].geoGebraContent
-            // );
-            console.warn(ggbObject);
-            return geoGebraObject;
-        });
+            .then((geoGebraObject) => {
+                // translateApplet(
+                //     "ggb-element".concat(
+                //         components[component].materialId
+                //     ),
+                //     components[component].geoGebraContent
+                // );
+                console.warn(ggbObject);
+                return geoGebraObject;
+            });
     }
     async function pauseEverything() {
         if (pastedJSON) {
@@ -988,7 +1003,6 @@ async function translateApplet(
 ) {
     // get data from textarea
     const language = "spanish";
-    await sleep(2000);
 
     if (!ggbApplet.exists("defaultGGBLanguage")) {
         ggbApplet.evalCommand("defaultGGBLanguage='Spanish'");

@@ -13,7 +13,6 @@ const sleep = (ms = 0) =>
     });
 
 const link1 = document.getElementById("downloadJSON-link");
-// input1.value = "758108c1-42f4-441b-9db2-dd528b088eca";
 filePicker.addEventListener("change", readFile, false);
 
 let workingJSON = {};
@@ -22,26 +21,26 @@ const language = "spanish";
 const bigObject = {
     english: {},
 };
+
 function readFile(event) {
+    while (pastedJSON.firstChild) {
+        pastedJSON.removeChild(pastedJSON.firstChild);
+    }
     const uploadedFiles = event.target.files;
-    const firstFile = uploadedFiles[0];
-    const reader = new FileReader();
-    const showFile = (file) => {
-        pastedJSON.innerHTML = file.target.result;
-    };
-    const handleLoadedFile = () => {
-        return showFile;
-    };
-    reader.onload = handleLoadedFile(firstFile);
-    reader.readAsText(firstFile);
+    for (const singleFile of uploadedFiles) {
+        const reader = new FileReader();
+        const showFile = (singleFile) => {
+            const fileNameLI = document.createElement("li");
+            fileNameLI.innerHTML = singleFile.name;
+            pastedJSON.appendChild(fileNameLI);
+        };
+        reader.onload = showFile(singleFile);
+        reader.readAsText(singleFile);
+    }
 }
 
 function gatherData(download = false) {
     const globalID = input1.value;
-    // TODO: add share and submit
-
-    // header.innerHTML = "Report Generating...";
-    // paragraph.innerHTML = "";
     try {
         fetch(
             `https://digital.greatminds.org/lessons/api/authoring/v2/preview/version/${globalID}`,
@@ -53,339 +52,53 @@ function gatherData(download = false) {
         )
             .then((response) => response.json())
             .then(async function (data) {
-                console.log(data);
+                const downloadedGGB = [];
                 for (const item in data.slides) {
                     const { contents } = data.slides[item];
-                    bigObject.english["slide".concat(item)] = {
-                        slideNumber: data.slides[item].slideId,
-                        codingLayer: data.slides[item].code,
-                        contents: {},
-                    };
                     for await (const comp of Object.keys(contents)) {
-                        const componentName = contents[comp].name;
                         if (contents[comp].type === "geogebra") {
-                            bigObject.english["slide".concat(item)].contents[
-                                componentName
-                            ] = {
-                                componentType: contents[comp].type,
-                            };
-                        } else {
-                            bigObject.english["slide".concat(item)].contents[
-                                componentName
-                            ] = {
-                                [componentName.concat("AriaLabel")]:
-                                    contents[comp].data.ariaLabel,
-                                componentType: contents[comp].type,
-                            };
-                        }
-                        switch (
-                            bigObject.english["slide".concat(item)].contents[
-                                componentName
-                            ].componentType
-                        ) {
-                            case "geogebra": {
-                                const innerds = await getGeoGebraGuts(
-                                    contents[comp].config.materialId
-                                );
-                                bigObject.english[
-                                    "slide".concat(item)
-                                ].contents[componentName].materialId =
-                                    contents[comp].config.materialId;
-                                bigObject.english[
-                                    "slide".concat(item)
-                                ].contents[componentName].geoGebraContent =
-                                    innerds;
+                            const geoGebraMaterialId =
+                                contents[comp].config.materialId;
+                            if (!downloadedGGB.includes(geoGebraMaterialId)) {
+                                const innerds =
+                                    await getGeoGebraGuts(geoGebraMaterialId);
                                 waitForIt(
-                                    bigObject.english["slide".concat(item)]
-                                        .contents[componentName]
-                                        .geoGebraContent === innerds
+                                    () => typeof innerds === "object"
                                 ).then(() => {
-                                    console.log("all done");
+                                    downloadData({
+                                        type: "GeoGebra Applet - ".concat(
+                                            geoGebraMaterialId
+                                        ),
+                                        title: data.title,
+                                        level: data.level,
+                                        module: data.module,
+                                        topic: data.topic,
+                                        lesson: data.lesson,
+                                        data: {
+                                            english: innerds.bigObject,
+                                            spanish: innerds.bigObject,
+                                        },
+                                    });
+                                    downloadData({
+                                        type: "GeoGebra GlobalJS - ".concat(
+                                            geoGebraMaterialId
+                                        ),
+                                        title: data.title,
+                                        level: data.level,
+                                        module: data.module,
+                                        topic: data.topic,
+                                        lesson: data.lesson,
+                                        data: innerds.pulledGlobalJS,
+                                        extension: "js",
+                                    });
+                                    downloadedGGB.push(geoGebraMaterialId);
                                     ggbApplet.remove();
-                                }).then;
-                                break;
+                                });
                             }
-                            case "textbox":
-                            case "richtexteditor": {
-                                bigObject.english[
-                                    "slide".concat(item)
-                                ].contents[componentName].text =
-                                    contents[comp].data.text;
-                                break;
-                            }
-                            case "button": {
-                                bigObject.english[
-                                    "slide".concat(item)
-                                ].contents[componentName].text =
-                                    contents[comp].data.text;
-                                break;
-                            }
-                            case "buttongroup": {
-                                bigObject.english[
-                                    "slide".concat(item)
-                                ].contents[componentName].buttons = {};
-                                for (const buttonNum in contents[comp].data
-                                    .buttons) {
-                                    bigObject.english[
-                                        "slide".concat(item)
-                                    ].contents[componentName].buttons[
-                                        "button".concat(buttonNum, "Text")
-                                    ] =
-                                        contents[comp].data.buttons[
-                                            buttonNum
-                                        ].text;
-                                }
-                                break;
-                            }
-                            case "select": {
-                                bigObject.english[
-                                    "slide".concat(item)
-                                ].contents[componentName].select = {};
-                                for (const selectNum in contents[comp].data
-                                    .options) {
-                                    bigObject.english[
-                                        "slide".concat(item)
-                                    ].contents[componentName].select[
-                                        "select".concat(selectNum, "Text")
-                                    ] =
-                                        contents[comp].data.options[
-                                            selectNum
-                                        ].label;
-                                }
-                                break;
-                            }
-                            case "image": {
-                                bigObject.english[
-                                    "slide".concat(item)
-                                ].contents[componentName].alt =
-                                    contents[comp].data.alt;
-                                bigObject.english[
-                                    "slide".concat(item)
-                                ].contents[componentName].copyright =
-                                    contents[comp].data.copyright;
-                                bigObject.english[
-                                    "slide".concat(item)
-                                ].contents[componentName].src =
-                                    contents[comp].data.src;
-                                break;
-                            }
-                            case "dropdown": {
-                                bigObject.english[
-                                    "slide".concat(item)
-                                ].contents[componentName].dropdown = {};
-                                for (const dropNum in contents[comp].data
-                                    .listBox) {
-                                    bigObject.english[
-                                        "slide".concat(item)
-                                    ].contents[componentName].dropdown[
-                                        "dropdown".concat(dropNum, "Text")
-                                    ] =
-                                        contents[comp].data.listBox[
-                                            dropNum
-                                        ].value;
-                                }
-                                bigObject.english[
-                                    "slide".concat(item)
-                                ].contents[componentName].label =
-                                    contents[comp].data.label;
-                                bigObject.english[
-                                    "slide".concat(item)
-                                ].contents[componentName].placeholder =
-                                    contents[comp].data.placeholder;
-                                break;
-                            }
-                            case "table": {
-                                bigObject.english[
-                                    "slide".concat(item)
-                                ].contents[componentName].columns = {};
-                                for (const colNum in Object.keys(
-                                    contents[comp].data.columns
-                                )) {
-                                    bigObject.english[
-                                        "slide".concat(item)
-                                    ].contents[componentName].columns[
-                                        "col".concat(colNum, "Text")
-                                    ] =
-                                        contents[comp].data.columns[
-                                            colNum
-                                        ].value;
-                                }
-                                bigObject.english[
-                                    "slide".concat(item)
-                                ].contents[componentName].rows = {};
-                                bigObject.english[
-                                    "slide".concat(item)
-                                ].contents[componentName].ariaRows = {};
-
-                                for (const rowNum in contents[comp].data.rows) {
-                                    bigObject.english[
-                                        "slide".concat(item)
-                                    ].contents[componentName].rows[
-                                        "row".concat(rowNum)
-                                    ] = {};
-                                    bigObject.english[
-                                        "slide".concat(item)
-                                    ].contents[componentName].ariaRows[
-                                        "row".concat(rowNum)
-                                    ] = {};
-                                    for (const cellNum in contents[comp].data
-                                        .rows[rowNum]) {
-                                        if (
-                                            contents[comp].data.rows[rowNum][
-                                                cellNum
-                                            ].inputType === "mixed"
-                                        ) {
-                                            bigObject.english[
-                                                "slide".concat(item)
-                                            ].contents[componentName].rows[
-                                                "row".concat(rowNum)
-                                            ]["col".concat(cellNum, "Text")] = {
-                                                ...contents[comp].data.rows[
-                                                    "row".concat(rowNum)
-                                                ][cellNum].mixedText["0"]
-                                                    .children,
-                                            };
-                                        } else {
-                                            bigObject.english[
-                                                "slide".concat(item)
-                                            ].contents[componentName].rows[
-                                                "row".concat(rowNum)
-                                            ]["col".concat(cellNum, "Text")] =
-                                                contents[comp].data.rows[
-                                                    rowNum
-                                                ][cellNum].value;
-                                        }
-                                        bigObject.english[
-                                            "slide".concat(item)
-                                        ].contents[componentName].ariaRows[
-                                            "row".concat(rowNum)
-                                        ]["col".concat(cellNum, "AriaLabel")] =
-                                            contents[comp].data.rows[rowNum][
-                                                cellNum
-                                            ].ariaLabel;
-                                    }
-                                }
-                                break;
-                            }
-                            case "complextable": {
-                                bigObject.english[
-                                    "slide".concat(item)
-                                ].contents[componentName].rows = {};
-                                bigObject.english[
-                                    "slide".concat(item)
-                                ].contents[componentName].ariaRows = {};
-                                for (const rowNum in contents[comp].data.rows) {
-                                    bigObject.english[
-                                        "slide".concat(item)
-                                    ].contents[componentName].rows[
-                                        "row".concat(rowNum)
-                                    ] = {};
-                                    bigObject.english[
-                                        "slide".concat(item)
-                                    ].contents[componentName].ariaRows[
-                                        "row".concat(rowNum)
-                                    ] = {};
-                                    for (const cellNum in contents[comp].data
-                                        .rows[rowNum]) {
-                                        if (
-                                            contents[comp].data.rows[rowNum][
-                                                cellNum
-                                            ].inputType === "mixed"
-                                        ) {
-                                            let trimmedSentence = "";
-                                            for (const item of contents[comp]
-                                                .data.rows[rowNum][cellNum]
-                                                .mixedText["0"].children) {
-                                                if (item.text) {
-                                                    trimmedSentence =
-                                                        trimmedSentence.concat(
-                                                            item.text
-                                                        );
-                                                    // do stuff
-                                                } else if (item.latex) {
-                                                    trimmedSentence =
-                                                        trimmedSentence.concat(
-                                                            item.latex,
-                                                            " "
-                                                        );
-                                                }
-                                            }
-                                            bigObject.english[
-                                                "slide".concat(item)
-                                            ].contents[componentName].rows[
-                                                "row".concat(rowNum)
-                                            ]["col".concat(cellNum, "Text")] =
-                                                trimmedSentence;
-                                        } else {
-                                            bigObject.english[
-                                                "slide".concat(item)
-                                            ].contents[componentName].rows[
-                                                "row".concat(rowNum)
-                                            ]["col".concat(cellNum, "Text")] =
-                                                contents[comp].data.rows[
-                                                    rowNum
-                                                ][cellNum].value;
-                                        }
-                                        // TODO: Add scope scrape here
-                                        bigObject.english[
-                                            "slide".concat(item)
-                                        ].contents[componentName].ariaRows[
-                                            "row".concat(rowNum)
-                                        ]["col".concat(cellNum, "AriaLabel")] =
-                                            contents[comp].data.rows[rowNum][
-                                                cellNum
-                                            ].ariaLabel;
-                                    }
-                                }
-                                break;
-                            }
-                            case "categorization": {
-                                bigObject.english[
-                                    "slide".concat(item)
-                                ].contents[componentName].items = {};
-                                for (const itemNum in contents[comp].data
-                                    .items) {
-                                    bigObject.english[
-                                        "slide".concat(item)
-                                    ].contents[componentName].items[
-                                        "item".concat(itemNum, "Text")
-                                    ] =
-                                        contents[comp].data.items[
-                                            itemNum
-                                        ].label;
-                                }
-                                bigObject.english[
-                                    "slide".concat(item)
-                                ].contents[componentName].categories = {};
-                                for (const catNum in contents[comp].data
-                                    .categories) {
-                                    bigObject.english[
-                                        "slide".concat(item)
-                                    ].contents[componentName].categories[
-                                        "category".concat(catNum, "Text")
-                                    ] =
-                                        contents[comp].data.categories[
-                                            catNum
-                                        ].label;
-                                }
-                                break;
-                            }
-                            case "pdfviewer": {
-                                bigObject.english[
-                                    "slide".concat(item)
-                                ].contents[componentName].id =
-                                    contents[comp].data.id;
-                                bigObject.english[
-                                    "slide".concat(item)
-                                ].contents[componentName].url =
-                                    contents[comp].data.downloadUrl;
-                                break;
-                            }
-                            default:
-                                break;
                         }
                     }
                 }
+
                 bigObject.spanish = bigObject.english;
                 if (document.querySelector(".applet_scaler")) {
                     document.querySelector(".applet_scaler").remove();
@@ -395,11 +108,13 @@ function gatherData(download = false) {
                 }
                 if (download) {
                     downloadData({
+                        type: "Slides",
                         title: data.title,
                         level: data.level,
                         module: data.module,
                         topic: data.topic,
                         lesson: data.lesson,
+                        data,
                     });
                 } else {
                     console.log(bigObject);
@@ -409,12 +124,32 @@ function gatherData(download = false) {
         console.error(error);
     }
 }
-function downloadData({ title, level, module, topic, lesson }) {
-    // get all of the text and download it
-    const blob = new Blob([JSON.stringify(bigObject)], { type: "text/json" });
-    link1.href = window.URL.createObjectURL(blob);
+function downloadData({
+    type,
+    title,
+    level,
+    module,
+    topic,
+    lesson,
+    data = bigObject,
+    extension = "json",
+}) {
+    if (extension === "json") {
+        // get all of the text and download it
+        const blob = new Blob([JSON.stringify(data)], {
+            type: "text/JSON",
+        });
+        link1.href = window.URL.createObjectURL(blob);
+    } else {
+        // get all of the text and download it
+        const blob = new Blob([data], {
+            type: "text/js",
+        });
+        link1.href = window.URL.createObjectURL(blob);
+    }
     const todaysDate = new Date().toDateString().slice(4);
-    link1.download = "AllText - ".concat(
+    link1.download = type.concat(
+        " - ",
         title,
         " - G",
         level,
@@ -426,7 +161,8 @@ function downloadData({ title, level, module, topic, lesson }) {
         lesson,
         " - ",
         todaysDate,
-        ".JSON"
+        ".",
+        extension
     );
     link1.click();
 }
@@ -493,11 +229,11 @@ function getGlobalJS() {
 
 function waitForIt(condition) {
     return new Promise((resolve) => {
-        if (condition) {
+        if (condition()) {
             return resolve();
         }
         const observer = new MutationObserver(() => {
-            if (condition) {
+            if (condition()) {
                 observer.disconnect();
                 resolve();
             }
@@ -508,11 +244,13 @@ function waitForIt(condition) {
         });
     });
 }
+
 async function getGeoGebraGuts(matID) {
     // boilerplate language - strip it out so translators don't keep translating it
     loadApplet(matID);
     const ggbObject = waitForIt(
-        document.querySelector("canvas") &&
+        () =>
+            document.querySelector("canvas") &&
             document.querySelector("canvas").hasAttribute("aria-label")
     )
         .then(() => getText())
@@ -538,7 +276,6 @@ async function getGeoGebraGuts(matID) {
         const applet = new GGBApplet(params, true);
         applet.inject("ggb-element");
     }
-
     return ggbObject;
 }
 // download all text
@@ -546,7 +283,6 @@ async function getText() {
     // handles minimum/maximum text, point labels, titles
     const bigObject = {};
     await sleep(2000);
-    console.log("Something");
     // handle ariaLabel
     if (document.querySelector(`canvas`)) {
         const ariaLabel = document
@@ -625,52 +361,51 @@ async function getText() {
     // search through globalJS for any alt text
     const pulledGlobalJS = getGlobalJS();
 
-    // removes all non-line break space
-    const cleanedJS = pulledGlobalJS.replace(/([^\n][^\S\r\n])[^\S\r\n]+/g, "");
-    const soapyComments = cleanedJS.replace(/\/\//gm, "");
-    const soapyQuotes = soapyComments.replace(/\\"/gm, "'");
+    // // removes all non-line break space
+    // const cleanedJS = pulledGlobalJS.replace(/([^\n][^\S\r\n])[^\S\r\n]+/g, "");
+    // const soapyComments = cleanedJS.replace(/\/\//gm, "");
+    // const soapyQuotes = soapyComments.replace(/\\"/gm, "'");
 
-    // removes all line breaks
-    const squeakyClean = soapyQuotes.replace(/(\r\n|\n|\r)/gm, "");
-    bigObject.globalJSText = squeakyClean;
+    // // removes all line breaks
+    // const squeakyClean = soapyQuotes.replace(/(\r\n|\n|\r)/gm, "");
 
     // if you find ReadText(something), pull the text
-    function pullReadText() {
-        // matches anything that starts with the words ReadText
-        const allMatches = squeakyClean.match(/ReadText\((.*?)\)/g);
+    // function pullReadText() {
+    //     // matches anything that starts with the words ReadText
+    //     const allMatches = squeakyClean.match(/ReadText\((.*?)\)/g);
 
-        // if matches exist, Put them into their own section of globalJSText
-        if (allMatches && allMatches.length !== 0) {
-            allMatches.forEach(function (element, index) {
-                bigObject.globalJSText["GGBReadText" + index] = element
-                    .replace(/([^\n][^\S\r\n])[^\S\r\n]+/g, "")
-                    .trim();
-            });
-        }
-        // get keyboard instructions constant, if something has been changed, include it
-        const allKeyboardInstructions = squeakyClean.match(
-            /const keyboardInstructions = \{.*?\}/g
-        );
-        if (
-            allKeyboardInstructions &&
-            reusedText.keyboardInstructionsConst !==
-                allKeyboardInstructions[0].replace(
-                    "const keyboardInstructions = ",
-                    ""
-                )
-        ) {
-            bigObject.keyboardInstructionsConst = allKeyboardInstructions[0]
-                .replace("const keyboardInstructions = ", "")
-                .replace(
-                    '// A: "Presiona las teclas de flecha para mover este punto.", // example for a point',
-                    ""
-                )
-                .replaceAll("// example for a point", "");
-        }
-    }
+    //     // if matches exist, Put them into their own section of globalJSText
+    //     if (allMatches && allMatches.length !== 0) {
+    //         allMatches.forEach(function (element, index) {
+    //             bigObject.globalJSText["GGBReadText" + index] = element
+    //                 .replace(/([^\n][^\S\r\n])[^\S\r\n]+/g, "")
+    //                 .trim();
+    //         });
+    //     }
+    //     // get keyboard instructions constant, if something has been changed, include it
+    //     const allKeyboardInstructions = squeakyClean.match(
+    //         /const keyboardInstructions = \{.*?\}/g
+    //     );
+    //     if (
+    //         allKeyboardInstructions &&
+    //         reusedText.keyboardInstructionsConst !==
+    //             allKeyboardInstructions[0].replace(
+    //                 "const keyboardInstructions = ",
+    //                 ""
+    //             )
+    //     ) {
+    //         bigObject.keyboardInstructionsConst = allKeyboardInstructions[0]
+    //             .replace("const keyboardInstructions = ", "")
+    //             .replace(
+    //                 '// A: "Presiona las teclas de flecha para mover este punto.", // example for a point',
+    //                 ""
+    //             )
+    //             .replaceAll("// example for a point", "");
+    //     }
+    // }
 
-    pullReadText();
-    return bigObject;
+    // pullReadText();
+    return { bigObject, pulledGlobalJS };
 }
 button1.addEventListener("click", () => {
     gatherData();
@@ -713,7 +448,8 @@ button3.addEventListener("click", () => {
     ) {
         loadApplet(ggbName, ggbName.replace("ggb-element", ""));
         const ggbObject = waitForIt(
-            document.querySelector("canvas") &&
+            () =>
+                document.querySelector("canvas") &&
                 document.querySelector("canvas").hasAttribute("aria-label")
         )
             .then(() =>
@@ -1002,7 +738,7 @@ async function translateApplet(
     spanishReusedText
 ) {
     // get data from textarea
-    const language = "spanish";
+    // const language = "spanish";
 
     if (!ggbApplet.exists("defaultGGBLanguage")) {
         ggbApplet.evalCommand("defaultGGBLanguage='Spanish'");
@@ -1102,42 +838,42 @@ async function translateApplet(
 
     // take in globalJS again,
     function handleGlobalJS(englishReusedText, spanishReusedText) {
-        let pulledGlobalJS = getGlobalJS();
+        // const pulledGlobalJS = getGlobalJS();
         // if you find ReadText(something), pull the text
-        function replaceReadText() {
-            // if there's a globalJSText section in the translated JSON object, replace the text in globalJS
-            const altTextKeys = Object.keys(prettyAltText[language]);
-            if (altTextKeys.includes("globalJSText")) {
-                const ggbReadTextKeys = Object.keys(
-                    prettyAltText[language].globalJSText
-                );
-                ggbReadTextKeys.forEach((el, index) => {
-                    pulledGlobalJS = pulledGlobalJS.replace(
-                        prettyAltText.english.globalJSText[
-                            "GGBReadText" + index
-                        ],
-                        prettyAltText[language].globalJSText[
-                            "GGBReadText" + index
-                        ]
-                    );
-                });
-            }
-        }
+        // function replaceReadText() {
+        //     // if there's a globalJSText section in the translated JSON object, replace the text in globalJS
+        //     const altTextKeys = Object.keys(prettyAltText[language]);
+        //     if (altTextKeys.includes("globalJSText")) {
+        //         const ggbReadTextKeys = Object.keys(
+        //             prettyAltText[language].globalJSText
+        //         );
+        //         ggbReadTextKeys.forEach((el, index) => {
+        //             pulledGlobalJS = pulledGlobalJS.replace(
+        //                 prettyAltText.english.globalJSText[
+        //                     "GGBReadText" + index
+        //                 ],
+        //                 prettyAltText[language].globalJSText[
+        //                     "GGBReadText" + index
+        //                 ]
+        //             );
+        //         });
+        //     }
+        // }
 
-        function replaceKIConst() {
-            // get keyboard instructions constant, if something has been changed, include it
-            pulledGlobalJS = pulledGlobalJS.replace(
-                /const keyboardInstructions = \{.*?\}/gs,
-                "const keyboardInstructions = ".concat(
-                    prettyAltText[language].keyboardInstructionsConst
-                        .replace(
-                            '// A: "Presiona las teclas de flecha para mover este punto.", // example for a point',
-                            ""
-                        )
-                        .replaceAll("// example for a point", "")
-                )
-            );
-        }
+        // function replaceKIConst() {
+        //     // get keyboard instructions constant, if something has been changed, include it
+        //     pulledGlobalJS = pulledGlobalJS.replace(
+        //         /const keyboardInstructions = \{.*?\}/gs,
+        //         "const keyboardInstructions = ".concat(
+        //             prettyAltText[language].keyboardInstructionsConst
+        //                 .replace(
+        //                     '// A: "Presiona las teclas de flecha para mover este punto.", // example for a point',
+        //                     ""
+        //                 )
+        //                 .replaceAll("// example for a point", "")
+        //         )
+        //     );
+        // }
 
         // replaceReadText();
         // replaceKIConst();
@@ -1200,3 +936,12 @@ function downloadApplet() {
 button4.addEventListener("click", () => {
     downloadApplet();
 });
+
+// function log(wrapped) {
+//     return function () {
+//         console.log("Starting", wrapped.name, arguments);
+//         const result = wrapped.apply(this, arguments);
+//         console.log("Finished", wrapped.name);
+//         return result;
+//     };
+// }

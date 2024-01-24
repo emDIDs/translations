@@ -43,19 +43,17 @@
                         <div id="ggb-element"></div>
                         <div>
                             <label for="upload">
-                                Choose JSON file or paste contents here:
+                                Choose all lesson files. You can use shift or
+                                CTRL to select multiple files at once.
                             </label>
                             <input
                                 id="upload"
                                 type="file"
                                 accept="text/JSON"
                                 name="upload"
-                                size="30" />
-                            <textarea
-                                rows="4"
-                                cols="50"
-                                id="json-object"
-                                value=""></textarea>
+                                size="30"
+                                multiple />
+                            <ul id="json-object"></ul>
                         </div>
                     </div>
                     <div class="grouper">

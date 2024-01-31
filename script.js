@@ -7,6 +7,8 @@ const button2 = document.getElementById("pull-text");
 const button3 = document.getElementById("translate");
 const button4 = document.getElementById("download");
 const slideData = document.getElementById("slide-data");
+const slideContainer = document.getElementById("slide-data");
+
 const sleep = (ms = 0) =>
     new Promise((resolve) => {
         setTimeout(resolve, ms);
@@ -16,11 +18,14 @@ const link1 = document.getElementById("downloadJSON-link");
 filePicker.addEventListener("change", readFile, false);
 
 let workingJSON = {};
-const language = "spanish";
+// const language = "spanish";
 // fetch lesson
 const bigObject = {
     english: {},
 };
+let translatedSlides;
+let translatedApplet;
+let translatedGlobalJS;
 
 function readFile(event) {
     while (pastedJSON.firstChild) {
@@ -29,17 +34,40 @@ function readFile(event) {
     const uploadedFiles = event.target.files;
     for (const singleFile of uploadedFiles) {
         const reader = new FileReader();
-        const showFile = (singleFile) => {
+        const showFile = (file) => {
             const fileNameLI = document.createElement("li");
             fileNameLI.innerHTML = singleFile.name;
             pastedJSON.appendChild(fileNameLI);
+            switch (true) {
+                case singleFile.name.includes("Slides"): {
+                    translatedSlides = file.target.result;
+                    break;
+                }
+                case singleFile.name.includes("Applet"): {
+                    translatedApplet = file.target.result;
+                    break;
+                }
+                case singleFile.name.includes("GlobalJS"): {
+                    translatedGlobalJS = file.target.result;
+                    break;
+                }
+            }
         };
-        reader.onload = showFile(singleFile);
+        const handleLoadedFile = () => {
+            return showFile;
+        };
+        reader.onload = handleLoadedFile(singleFile);
         reader.readAsText(singleFile);
     }
 }
 
 function gatherData(download = false) {
+    while (pastedJSON.firstChild) {
+        pastedJSON.removeChild(pastedJSON.firstChild);
+    }
+    while (slideContainer.firstChild) {
+        slideContainer.removeChild(slideContainer.firstChild);
+    }
     const globalID = input1.value;
     try {
         fetch(
@@ -418,7 +446,6 @@ button2.addEventListener("click", () => {
 
 // translate applet
 button3.addEventListener("click", () => {
-    const slideContainer = document.getElementById("slide-data");
     while (slideContainer.firstChild) {
         slideContainer.removeChild(slideContainer.firstChild);
     }
@@ -472,10 +499,10 @@ button3.addEventListener("click", () => {
             });
     }
     async function pauseEverything() {
-        if (pastedJSON) {
-            workingJSON = JSON.parse(pastedJSON.value);
-            const workingKeys = Object.keys(workingJSON[language]);
-            for (const keys of workingKeys) {
+        workingJSON = JSON.parse(translatedSlides);
+        if (workingJSON.globalId) {
+            const workingKeys = Object.keys(workingJSON.slides);
+            for (const key of workingKeys) {
                 const fragment = document.createDocumentFragment();
                 const slideSeparator = document.createElement("div");
                 const slideTitle = fragment
@@ -486,51 +513,55 @@ button3.addEventListener("click", () => {
                     "border-top:1px black solid; margin-top:10px"
                 );
                 slideTitle.textContent = `Slide ${
-                    Number(keys.replace("slide", "")) + 1
+                    Number(key.replace("slide", "")) + 1
                 }`;
-                const components = workingJSON[language][keys].contents;
-
-                for (const component of Object.keys(components)) {
-                    switch (components[component].componentType) {
+                const components = workingJSON.slides[key].contents;
+                for (const compNum of Object.keys(components)) {
+                    console.log(components[compNum]);
+                    switch (components[compNum].type) {
                         case "richtexteditor": {
                             const rteDump = document.createElement("p");
-                            rteDump.innerHTML = components[component].text;
+                            rteDump.innerHTML = components[compNum].data.text;
                             fragment.appendChild(rteDump);
                             break;
                         }
                         case "textbox": {
                             const textDump = document.createElement("p");
-                            textDump.innerHTML = `<p>${components[component].text}</p>`;
+                            textDump.innerHTML = `<p>${components[compNum].data.text}</p>`;
                             fragment.appendChild(textDump);
+                            console.warn(
+                                `Textbox found: ${components[compNum].name}. This lesson may not be fully remediated.`
+                            );
                             break;
                         }
                         case "button": {
                             const soloButton = document.createElement("button");
-                            soloButton.textContent = components[component].text;
+                            soloButton.textContent =
+                                components[compNum].data.text;
                             fragment.appendChild(soloButton);
                             break;
                         }
                         case "buttongroup": {
                             Object.values(
-                                components[component].buttons
+                                components[compNum].data.buttons
                             ).forEach((element) => {
                                 const groupButton =
                                     document.createElement("button");
-                                groupButton.textContent = element;
+                                groupButton.textContent = element.text;
                                 fragment.appendChild(groupButton);
                             });
                             break;
                         }
                         case "select": {
                             const selectDump = document.createElement("select");
-                            Object.values(components[component].select).forEach(
-                                (element) => {
-                                    const optionDump =
-                                        document.createElement("option");
-                                    optionDump.textContent = element;
-                                    selectDump.appendChild(optionDump);
-                                }
-                            );
+                            Object.values(
+                                components[compNum].data.options
+                            ).forEach((element) => {
+                                const optionDump =
+                                    document.createElement("option");
+                                optionDump.textContent = element.label;
+                                selectDump.appendChild(optionDump);
+                            });
                             fragment.appendChild(selectDump);
                             break;
                         }
@@ -541,25 +572,35 @@ button3.addEventListener("click", () => {
                             ggb.setAttribute(
                                 "id",
                                 "ggb-element".concat(
-                                    components[component].materialId
+                                    components[compNum].config.materialId
                                 )
                             );
-                            fragment.appendChild(ggbContainer).appendChild(ggb);
-                            const englishReusedText =
-                                workingJSON.english[keys].contents[component]
-                                    .geoGebraContent;
-                            const spanishReusedText =
-                                workingJSON.spanish[keys].contents[component]
-                                    .geoGebraContent;
-                            await pauseForTranslation(
-                                "ggb-element".concat(
-                                    components[component].materialId
-                                ),
-                                components[component].geoGebraContent,
-                                englishReusedText,
-                                spanishReusedText
-                            );
-                            // const params = {
+                            if (
+                                translatedApplet !== "" &&
+                                translatedGlobalJS !== ""
+                            ) {
+                                const appletJSON = JSON.parse(translatedApplet);
+                                console.log(appletJSON);
+                                fragment
+                                    .appendChild(ggbContainer)
+                                    .appendChild(ggb);
+                                const englishReusedText = appletJSON.english;
+                                const spanishReusedText = appletJSON.spanish;
+                                await pauseForTranslation(
+                                    "ggb-element".concat(
+                                        components[compNum].config.materialId
+                                    ),
+                                    components[compNum].geoGebraContent,
+                                    englishReusedText,
+                                    spanishReusedText
+                                );
+                            } else {
+                                console.log(
+                                    typeof translatedApplet,
+                                    typeof translatedGlobalJS
+                                );
+                            }
+                            /* // const params = {
                             //     material_id: `${components[component].materialId}`,
                             //     appName: "classic",
                             //     scaleContainerClass: "container",
@@ -576,16 +617,16 @@ button3.addEventListener("click", () => {
                             //     "ggb-element".concat(
                             //         components[component].materialId
                             //     )
-                            // );
+                            // );*/
 
                             break;
                         }
                         case "pdfviewer": {
                             const pdfAdvisory = document.createElement("p");
-                            pdfAdvisory.textContent = `This page contains a PDF with ID: ${components[component].id}.`;
+                            pdfAdvisory.textContent = `This page contains a PDF with ID: ${components[compNum].data.id}.`;
                             const pdfLink = document.createElement("a");
                             pdfLink.innerText = "Link to PDF";
-                            pdfLink.href = components[component].url;
+                            pdfLink.href = components[compNum].data.downloadUrl;
                             fragment.appendChild(pdfAdvisory);
                             fragment.appendChild(pdfLink);
                             break;
@@ -593,51 +634,43 @@ button3.addEventListener("click", () => {
                         case "complextable": {
                             const tableDump = document.createElement("table");
                             for (const rowNum of Object.keys(
-                                components[component].rows
+                                components[compNum].data.rows
                             )) {
                                 const tableRow = document.createElement("tr");
 
                                 for (const colNum of Object.keys(
-                                    components[component].rows[rowNum]
+                                    components[compNum].data.rows[rowNum]
                                 )) {
                                     let tableCells = null;
                                     if (
-                                        components[component].rows[rowNum][
+                                        components[compNum].data.rows[rowNum][
                                             colNum
                                         ].scope
                                     ) {
                                         tableCells =
                                             document.createElement("th");
                                         tableCells.textContent =
-                                            components[component].rows[rowNum][
-                                                colNum
-                                            ];
-                                        const ariaCall = colNum.replace(
-                                            "Text",
-                                            "AriaLabel"
-                                        );
+                                            components[compNum].data.rows[
+                                                rowNum
+                                            ][colNum].value;
                                         tableCells.setAttribute(
                                             "ariaLabel",
-                                            components[component].ariaRows[
+                                            components[compNum].data.rows[
                                                 rowNum
-                                            ][ariaCall]
+                                            ][colNum].ariaLabel
                                         );
                                     } else {
                                         tableCells =
                                             document.createElement("td");
                                         tableCells.textContent =
-                                            components[component].rows[rowNum][
-                                                colNum
-                                            ];
-                                        const ariaCall = colNum.replace(
-                                            "Text",
-                                            "AriaLabel"
-                                        );
+                                            components[compNum].data.rows[
+                                                rowNum
+                                            ][colNum].value;
                                         tableCells.setAttribute(
                                             "ariaLabel",
-                                            components[component].ariaRows[
+                                            components[compNum].data.rows[
                                                 rowNum
-                                            ][ariaCall]
+                                            ][colNum].ariaLabel
                                         );
                                     }
                                     tableRow.appendChild(tableCells);
@@ -647,78 +680,110 @@ button3.addEventListener("click", () => {
                             fragment.appendChild(tableDump);
                             break;
                         }
-                        case "table": {
-                            const tableDump = document.createElement("table");
-                            const headerRow = document.createElement("tr");
-
-                            for (const headerCell of Object.values(
-                                components[component].columns
-                            )) {
-                                const tableHeader =
-                                    document.createElement("th");
-                                tableHeader.textContent = headerCell;
-                                headerRow.appendChild(tableHeader);
-                            }
-                            tableDump.appendChild(headerRow);
-                            for (const rowNum of Object.keys(
-                                components[component].rows
-                            )) {
-                                const tableRow = document.createElement("tr");
-
-                                for (const colNum of Object.keys(
-                                    components[component].rows[rowNum]
-                                )) {
-                                    const tableCells =
-                                        document.createElement("td");
-                                    tableCells.textContent =
-                                        components[component].rows[rowNum][
-                                            colNum
-                                        ];
-                                    const ariaCall = colNum.replace(
-                                        "Text",
-                                        "AriaLabel"
-                                    );
-                                    tableCells.setAttribute(
-                                        "ariaLabel",
-                                        components[component].ariaRows[rowNum][
-                                            ariaCall
-                                        ]
-                                    );
-                                    tableRow.appendChild(tableCells);
-                                }
-                                tableDump.appendChild(tableRow);
-                            }
-                            fragment.appendChild(tableDump);
-                            break;
-                        }
                         case "image": {
+                            const figDump = document.createElement("figure");
                             const imageDump = document.createElement("img");
-                            imageDump.src = components[component].src;
-                            imageDump.alt = components[component].alt;
+                            imageDump.src = components[compNum].data.src;
+                            imageDump.alt = components[compNum].data.alt;
                             imageDump.setAttribute(
                                 "style",
                                 "background-color: rgba(255, 255, 255, 1);color:rgba(0, 0, 0, 1)"
                             );
-                            if (
-                                components[component][
-                                    component.concat("AriaLabel")
-                                ]
-                            ) {
+                            if (components[compNum].data.ariaLabel) {
                                 imageDump.setAttribute(
                                     "ariaLabel",
-                                    components[component][
-                                        component.concat("AriaLabel")
-                                    ]
+                                    components[compNum].data.ariaLabel
                                 );
                             }
-                            fragment.appendChild(imageDump);
+                            if (components[compNum].data.title) {
+                                imageDump.setAttribute(
+                                    "title",
+                                    components[compNum].data.title
+                                );
+                            }
+                            if (components[compNum].data.caption) {
+                                const captionDump =
+                                    document.createElement("caption");
+                                captionDump.innerText =
+                                    components[compNum].data.caption;
+                                figDump.appendChild(captionDump);
+                            }
+                            fragment
+                                .appendChild(figDump)
+                                .appendChild(imageDump);
                             const copyright = document.createElement("p");
                             copyright.textContent =
-                                components[component].copyright;
+                                components[compNum].copyright;
                             fragment.appendChild(copyright);
                             break;
                         }
+                        case "dropdown": {
+                            const labelDump = document.createElement("label");
+                            labelDump.innerText =
+                                components[compNum].data.label;
+                            fragment.appendChild(labelDump);
+                            const selectDump = document.createElement("select");
+                            Object.values(
+                                components[compNum].data.listBox
+                            ).forEach((element) => {
+                                const optionDump =
+                                    document.createElement("option");
+                                optionDump.textContent = element.value;
+                                selectDump.appendChild(optionDump);
+                            });
+                            labelDump.appendChild(selectDump);
+                            const placeholderDump = document.createElement("p");
+                            placeholderDump.innerText =
+                                components[compNum].data.placeholder;
+                            fragment.appendChild(placeholderDump);
+                            break;
+                        }
+                        case "categorization": {
+                            const nameDump = document.createElement("p");
+                            nameDump.innerText = "Categories";
+                            fragment.appendChild(nameDump);
+                            const categDump = document.createElement("ul");
+                            Object.values(
+                                components[compNum].data.categories
+                            ).forEach((element) => {
+                                const optionDump = document.createElement("li");
+                                optionDump.textContent = element.label;
+                                categDump.appendChild(optionDump);
+                            });
+                            fragment.appendChild(categDump);
+                            const nameDump2 = document.createElement("p");
+                            nameDump2.innerText = "Items";
+                            fragment.appendChild(nameDump2);
+                            const itemDump = document.createElement("ul");
+                            Object.values(
+                                components[compNum].data.items
+                            ).forEach((element) => {
+                                const optionDump = document.createElement("li");
+                                optionDump.textContent = element.label;
+                                itemDump.appendChild(optionDump);
+                            });
+                            fragment.appendChild(itemDump);
+                            break;
+                        }
+                        case "separator":
+                        case "studentanswers": {
+                            break;
+                        }
+                        case "table":
+                        case "radio":
+                        case "fillintheblank": {
+                            alert(
+                                "This lesson is not fully remediated! Please stop work and contact the DID team."
+                            );
+                            console.error(
+                                `${components[compNum].type} on slide ${workingJSON.slides[key].slideId}`
+                            );
+                            return;
+                        }
                         default:
+                            console.warn(
+                                `Not yet optimized for ${components[compNum].type}`
+                            );
                             break;
                     }
                 }

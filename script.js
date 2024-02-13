@@ -8,6 +8,7 @@ const button3 = document.getElementById("translate");
 const button4 = document.getElementById("download");
 const slideData = document.getElementById("slide-data");
 const slideContainer = document.getElementById("slide-data");
+const statusText = document.getElementById("status");
 
 const sleep = (ms = 0) =>
     new Promise((resolve) => {
@@ -24,8 +25,8 @@ const bigObject = {
     english: {},
 };
 let translatedSlides;
-let translatedApplet;
-let translatedGlobalJS;
+const translatedApplet = {};
+const translatedGlobalJS = {};
 
 function readFile(event) {
     while (pastedJSON.firstChild) {
@@ -44,13 +45,37 @@ function readFile(event) {
                     break;
                 }
                 case singleFile.name.includes("Applet"): {
-                    translatedApplet = file.target.result;
+                    const materialIdMatch = singleFile.name
+                        .replace(/G\dM\dT\wL\d+/, "")
+                        .match(/-\s*([a-z0-9]{8})\s*-/);
+                    if (materialIdMatch.length > 1) {
+                        const materialIdFromFile = materialIdMatch[1];
+                        if (materialIdFromFile) {
+                            console.log(materialIdFromFile);
+                            translatedApplet[materialIdFromFile] =
+                                file.target.result;
+                        }
+                    }
                     break;
                 }
                 case singleFile.name.includes("GlobalJS"): {
-                    translatedGlobalJS = file.target.result;
+                    const materialIdMatch = singleFile.name
+                        .replace(/G\dM\dT\wL\d+/, "")
+                        .match(/-\s*([a-z0-9]{8})\s*-/);
+                    if (materialIdMatch.length > 1) {
+                        const materialIdFromFile = materialIdMatch[1];
+                        if (materialIdFromFile) {
+                            console.log(materialIdFromFile);
+                            translatedGlobalJS[materialIdFromFile] =
+                                file.target.result;
+                        }
+                    }
                     break;
                 }
+                default:
+                    alert(
+                        "The file you selected does not work with CATS. Please check the name and filetype."
+                    );
             }
         };
         const handleLoadedFile = () => {
@@ -62,6 +87,7 @@ function readFile(event) {
 }
 
 function gatherData(download = false) {
+    statusText.innerText = "Download process in progress";
     while (pastedJSON.firstChild) {
         pastedJSON.removeChild(pastedJSON.firstChild);
     }
@@ -131,8 +157,8 @@ function gatherData(download = false) {
                 if (document.querySelector(".applet_scaler")) {
                     document.querySelector(".applet_scaler").remove();
                 }
-                if (document.querySelector("#ggb-element")) {
-                    document.querySelector("#ggb-element").style = "height:0";
+                if (document.querySelector("#ggb-element-")) {
+                    document.querySelector("#ggb-element-").style = "height:0";
                 }
                 if (download) {
                     downloadData({
@@ -147,11 +173,13 @@ function gatherData(download = false) {
                 } else {
                     console.log(bigObject);
                 }
+                statusText.innerText = "Download process completed.";
             });
     } catch (error) {
         console.error(error);
     }
 }
+
 function downloadData({
     type,
     title,
@@ -436,12 +464,20 @@ async function getText() {
     return { bigObject, pulledGlobalJS };
 }
 button1.addEventListener("click", () => {
-    gatherData();
+    if (input1.value !== "") {
+        gatherData();
+    } else {
+        alert("Please enter a valid global ID.");
+    }
 });
 
 // download alt text
 button2.addEventListener("click", () => {
-    gatherData(true);
+    if (input1.value !== "") {
+        gatherData(true);
+    } else {
+        alert("Please enter a valid global ID.");
+    }
 });
 
 // translate applet
@@ -451,6 +487,7 @@ button3.addEventListener("click", () => {
     }
     // load applet
     function loadApplet(ggbName, matID) {
+        console.log("inside load:", ggbName, matID);
         const params = {
             // eslint-disable-next-line camelcase
             material_id: matID,
@@ -473,7 +510,14 @@ button3.addEventListener("click", () => {
         englishReusedText,
         spanishReusedText
     ) {
-        loadApplet(ggbName, ggbName.replace("ggb-element", ""));
+        console.log(
+            "INSIDE PAUSE:",
+            ggbName,
+            ggbGuts,
+            englishReusedText,
+            spanishReusedText
+        );
+        loadApplet(ggbName, ggbName.replace("ggb-element-", ""));
         const ggbObject = waitForIt(
             () =>
                 document.querySelector("canvas") &&
@@ -489,14 +533,15 @@ button3.addEventListener("click", () => {
             )
             .then((geoGebraObject) => {
                 // translateApplet(
-                //     "ggb-element".concat(
+                //     "ggb-element-".concat(
                 //         components[component].materialId
                 //     ),
                 //     components[component].geoGebraContent
                 // );
                 console.warn(ggbObject);
                 return geoGebraObject;
-            });
+            })
+            .catch((error) => console.error(error));
     }
     async function pauseEverything() {
         workingJSON = JSON.parse(translatedSlides);
@@ -517,7 +562,6 @@ button3.addEventListener("click", () => {
                 }`;
                 const components = workingJSON.slides[key].contents;
                 for (const compNum of Object.keys(components)) {
-                    console.log(components[compNum]);
                     switch (components[compNum].type) {
                         case "richtexteditor": {
                             const rteDump = document.createElement("p");
@@ -569,28 +613,36 @@ button3.addEventListener("click", () => {
                             const ggbContainer = document.createElement("div");
                             ggbContainer.setAttribute("class", "container");
                             const ggb = document.createElement("div");
+                            const { materialId } = components[compNum].config;
                             ggb.setAttribute(
                                 "id",
-                                "ggb-element".concat(
-                                    components[compNum].config.materialId
-                                )
+                                "ggb-element-".concat(materialId)
                             );
                             if (
-                                translatedApplet !== "" &&
-                                translatedGlobalJS !== ""
+                                translatedApplet[materialId] !== "" &&
+                                translatedGlobalJS[materialId] !== ""
                             ) {
-                                const appletJSON = JSON.parse(translatedApplet);
-                                console.log(appletJSON);
+                                const appletJSON = JSON.parse(
+                                    translatedApplet[materialId]
+                                );
+                                console.log("appletJSON:", appletJSON);
                                 fragment
                                     .appendChild(ggbContainer)
                                     .appendChild(ggb);
                                 const englishReusedText = appletJSON.english;
                                 const spanishReusedText = appletJSON.spanish;
+                                // await pauseForTranslation(
+                                //     "ggb-element-".concat(
+                                //         components[compNum].config.materialId
+                                //     ),
+                                //     components[compNum].geoGebraContent,
+                                //     englishReusedText,
+                                //     spanishReusedText
+                                // );
+                                console.log(appletJSON);
                                 await pauseForTranslation(
-                                    "ggb-element".concat(
-                                        components[compNum].config.materialId
-                                    ),
-                                    components[compNum].geoGebraContent,
+                                    "ggb-element-".concat(materialId),
+                                    appletJSON,
                                     englishReusedText,
                                     spanishReusedText
                                 );
@@ -600,25 +652,6 @@ button3.addEventListener("click", () => {
                                     typeof translatedGlobalJS
                                 );
                             }
-                            /* // const params = {
-                            //     material_id: `${components[component].materialId}`,
-                            //     appName: "classic",
-                            //     scaleContainerClass: "container",
-                            //     showToolBar: false,
-                            //     showAlgebraInput: false,
-                            //     showMenuBar: false,
-                            //     enableRightClick: false,
-                            //     language: "es",
-                            //     showFullscreenButton: "true",
-                            // };
-                            // // eslint-disable-next-line no-undef
-                            // const applet = new GGBApplet(params);
-                            // applet.inject(
-                            //     "ggb-element".concat(
-                            //         components[component].materialId
-                            //     )
-                            // );*/
-
                             break;
                         }
                         case "pdfviewer": {
@@ -685,6 +718,14 @@ button3.addEventListener("click", () => {
                             const imageDump = document.createElement("img");
                             imageDump.src = components[compNum].data.src;
                             imageDump.alt = components[compNum].data.alt;
+                            if (imageDump.alt === "") {
+                                console.log(
+                                    `%c There are images without alt text on slide ${
+                                        Number(key.replace("slide", "")) + 1
+                                    }.`,
+                                    "color:lime;background:black;"
+                                );
+                            }
                             imageDump.setAttribute(
                                 "style",
                                 "background-color: rgba(255, 255, 255, 1);color:rgba(0, 0, 0, 1)"
@@ -815,8 +856,9 @@ async function translateApplet(
     //     return obj;
     // }
     // const prettyAltText = prettyPrint(translatedText);
-    const prettyAltText = pastedJSON.value;
-    console.warn(prettyAltText, typeof prettyAltText);
+    // console.log("PASTEDJSON", pastedJSON.value);
+    // const prettyAltText = pastedJSON.value;
+    // console.warn(prettyAltText, typeof prettyAltText);
     // updates alt text with specified language
     function handleText(englishReusedText, spanishReusedText, translatedText) {
         const reusedKeysArray = Object.keys(reusedText.english);
@@ -942,7 +984,7 @@ async function translateApplet(
 
         // replaceReadText();
         // replaceKIConst();
-        handleText(englishReusedText, spanishReusedText, translatedText);
+        handleText(englishReusedText, spanishReusedText, translatedApplet);
 
         const fullAppletJSON = ggbApplet.getFileJSON();
 
@@ -957,8 +999,7 @@ async function translateApplet(
             return false;
         });
 
-        fullAppletJSON.archive[archiveNum].fileContent =
-            translatedText.globalJSText;
+        fullAppletJSON.archive[archiveNum].fileContent = translatedGlobalJS;
 
         const params = {
             material_id: "d5mfqpx5",

@@ -825,7 +825,10 @@ async function translateApplet(
         // handles minimum/maximum text, point labels, titles
         const allItems = ggbApplet.getAllObjectNames();
         const filteredArray = allItems.filter((el) => {
-            return Object.keys(spanishObject).includes(el);
+            return (
+                Object.keys(spanishObject).includes(el) ||
+                Object.keys(spanishObject).includes(el.concat("CaptionText"))
+            );
         });
         filteredArray.forEach(function (el) {
             const type = ggbApplet.getObjectType(el);
@@ -889,14 +892,17 @@ async function translateApplet(
                     }
                     break;
                 }
-                default:
+                default: {
+                    console.log(ggbApplet);
+                    console.log(el);
+                    if (ggbApplet.getCaption(el) !== "") {
+                        ggbApplet.setCaption(
+                            el,
+                            spanishObject[el.concat("CaptionText")]
+                        );
+                    }
                     break;
-            }
-            if (ggbApplet.getCaption(el) !== "") {
-                ggbApplet.setCaption(
-                    el,
-                    spanishObject[el.concat("CaptionText")]
-                );
+                }
             }
         });
     }

@@ -927,24 +927,28 @@ async function translateApplet(
         fullAppletJSON.archive[archiveNum].fileContent =
             translatedGlobalJS[matID];
 
-        const apiID = matID.concat("Id");
-        const params = {
-            material_id: "d5mfqpx5",
-            appName: "classic",
-            showToolBar: false,
-            showAlgebraInput: false,
-            showMenuBar: false,
-            enableRightClick: false,
-            language: "es",
-            id: apiID,
-            appletOnLoad(apiID) {
-                apiID.setFileJSON(fullAppletJSON);
-            },
-        };
+        function loadAppletLast() {
+            const apiID = matID.concat("Id");
+            const params = {
+                material_id: matID,
+                appName: "classic",
+                height: 650,
+                showToolBar: false,
+                showAlgebraInput: false,
+                showMenuBar: false,
+                enableRightClick: false,
+                language: "es",
+                id: apiID,
+                appletOnLoad(apiID) {
+                    apiID.setFileJSON(fullAppletJSON);
+                },
+            };
 
-        // eslint-disable-next-line no-undef
-        const applet = new GGBApplet(params);
-        applet.inject(ggbName);
+            // eslint-disable-next-line no-undef
+            const applet = new GGBApplet(params);
+            applet.inject(ggbName);
+        }
+        loadAppletLast();
     }
 
     handleGlobalJS(englishReusedText, spanishReusedText);

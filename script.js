@@ -257,7 +257,7 @@ const reusedText = {
     },
 };
 
-// function accessible from both buttons
+// pulls globalJS text
 function getGlobalJS() {
     let archiveNum = -1;
     const jsonArchive = ggbApplet.getFileJSON().archive;
@@ -293,7 +293,7 @@ function waitForIt(condition) {
 
 async function getGeoGebraGuts(matID) {
     // boilerplate language - strip it out so translators don't keep translating it
-    loadApplet(matID);
+    loadAppletFirst(matID);
     const ggbObject = waitForIt(
         () =>
             document.querySelector("canvas") &&
@@ -305,7 +305,7 @@ async function getGeoGebraGuts(matID) {
         });
 
     // load applet
-    function loadApplet(matID) {
+    function loadAppletFirst(matID) {
         const params = {
             // eslint-disable-next-line camelcase
             material_id: matID,
@@ -316,7 +316,7 @@ async function getGeoGebraGuts(matID) {
             showMenuBar: false,
             enableRightClick: false,
             language: "en",
-            id: matID.concat("id"),
+            id: matID.concat("Id"),
         };
 
         // eslint-disable-next-line no-undef
@@ -465,13 +465,12 @@ button2.addEventListener("click", () => {
     gatherData(true);
 });
 
-// translate applet
-button3.addEventListener("click", () => {
+function displayData() {
     while (slideContainer.firstChild) {
         slideContainer.removeChild(slideContainer.firstChild);
     }
     // load applet
-    function loadApplet(ggbName, matID) {
+    function loadAppletAgain(ggbName, matID) {
         const params = {
             // eslint-disable-next-line camelcase
             material_id: matID,
@@ -496,7 +495,7 @@ button3.addEventListener("click", () => {
         spanishReusedText,
         matID
     ) {
-        loadApplet(ggbName, ggbName.replace("ggb-element", ""));
+        loadAppletAgain(ggbName, ggbName.replace("ggb-element", ""));
         const ggbObject = waitForIt(
             () =>
                 document.querySelector("canvas") &&
@@ -512,12 +511,6 @@ button3.addEventListener("click", () => {
                 )
             )
             .then((geoGebraObject) => {
-                // translateApplet(
-                //     "ggb-element".concat(
-                //         components[component].materialId
-                //     ),
-                //     components[component].geoGebraContent
-                // );
                 console.warn(ggbObject);
                 return geoGebraObject;
             });
@@ -798,6 +791,11 @@ button3.addEventListener("click", () => {
         }
     }
     pauseEverything();
+}
+
+// translate applet
+button3.addEventListener("click", () => {
+    displayData();
 });
 
 // translate applet
@@ -814,8 +812,6 @@ async function translateApplet(
     if (!ggbApplet.exists("defaultGGBLanguage")) {
         ggbApplet.evalCommand("defaultGGBLanguage='Spanish'");
     }
-
-    // parse the string into a JSON object
 
     // updates alt text with specified language
     function handleText(englishReusedText, spanishReusedText, translatedText) {
@@ -914,6 +910,7 @@ async function translateApplet(
             language
         );
 
+        const ggbApplet = window[matID.concat("Id")];
         const fullAppletJSON = ggbApplet.getFileJSON();
 
         let archiveNum = -1;
@@ -928,19 +925,20 @@ async function translateApplet(
         });
 
         fullAppletJSON.archive[archiveNum].fileContent =
-            translatedText.globalJSText;
+            translatedGlobalJS[matID];
 
+        const apiID = matID.concat("Id");
         const params = {
             material_id: "d5mfqpx5",
             appName: "classic",
-            height: 650,
             showToolBar: false,
             showAlgebraInput: false,
             showMenuBar: false,
             enableRightClick: false,
             language: "es",
-            appletOnLoad(api1) {
-                api1.setFileJSON(fullAppletJSON);
+            id: apiID,
+            appletOnLoad(apiID) {
+                apiID.setFileJSON(fullAppletJSON);
             },
         };
 
@@ -952,16 +950,18 @@ async function translateApplet(
     handleGlobalJS(englishReusedText, spanishReusedText);
     // download applet
     function downloadApplet() {
+        const slideData = document.querySelectorAll("#slide-data");
         ggbApplet.evalCommand("ScreenDimensions = Corner(5)");
         ggbApplet.getBase64(function (str64) {
             const element = document.createElement("a");
+            element.id = matID.concat("DownloadLink");
             element.href = window.URL.createObjectURL(
                 new Blob([str64], {
                     type: "application/vnd.geogebra.file",
                 })
             );
-            element.download = input1.value + ".ggb";
-            element.click();
+            element.download = matID + ".ggb";
+            slideData[0].append(element);
         });
     }
     downloadApplet();
@@ -985,4 +985,8 @@ async function translateApplet(
 
 button4.addEventListener("click", () => {
     // downloadApplet();
+    const downloadLinks = document.querySelectorAll("a[id*='DownloadLink']");
+    downloadLinks.forEach((link) => {
+        link.click();
+    });
 });

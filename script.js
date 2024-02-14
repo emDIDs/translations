@@ -24,8 +24,8 @@ const bigObject = {
     english: {},
 };
 let translatedSlides;
-let translatedApplet;
-let translatedGlobalJS;
+const translatedApplet = {};
+const translatedGlobalJS = {};
 
 function readFile(event) {
     while (pastedJSON.firstChild) {
@@ -44,11 +44,29 @@ function readFile(event) {
                     break;
                 }
                 case singleFile.name.includes("Applet"): {
-                    translatedApplet = file.target.result;
+                    const materialIdMatch = singleFile.name
+                        .replace(/G\dM\dT\wL\d+/, "")
+                        .match(/-\s*([a-z0-9]{8})\s*-/);
+                    if (materialIdMatch.length > 1) {
+                        const materialIdFromFile = materialIdMatch[1];
+                        if (materialIdFromFile) {
+                            translatedApplet[materialIdFromFile] =
+                                file.target.result;
+                        }
+                    }
                     break;
                 }
                 case singleFile.name.includes("GlobalJS"): {
-                    translatedGlobalJS = file.target.result;
+                    const materialIdMatch = singleFile.name
+                        .replace(/G\dM\dT\wL\d+/, "")
+                        .match(/-\s*([a-z0-9]{8})\s*-/);
+                    if (materialIdMatch.length > 1) {
+                        const materialIdFromFile = materialIdMatch[1];
+                        if (materialIdFromFile) {
+                            translatedGlobalJS[materialIdFromFile] =
+                                file.target.result;
+                        }
+                    }
                     break;
                 }
             }
@@ -145,7 +163,7 @@ function gatherData(download = false) {
                         data,
                     });
                 } else {
-                    console.log(bigObject);
+                    console.log(JSON.parse(JSON.stringify(bigObject)));
                 }
             });
     } catch (error) {
@@ -298,14 +316,17 @@ async function getGeoGebraGuts(matID) {
             showMenuBar: false,
             enableRightClick: false,
             language: "en",
+            id: matID.concat("id"),
         };
 
         // eslint-disable-next-line no-undef
         const applet = new GGBApplet(params, true);
         applet.inject("ggb-element");
     }
+
     return ggbObject;
 }
+
 // download all text
 async function getText() {
     // handles minimum/maximum text, point labels, titles
@@ -461,6 +482,7 @@ button3.addEventListener("click", () => {
             showMenuBar: false,
             enableRightClick: false,
             language: "es",
+            id: matID.concat("Id"),
         };
 
         // eslint-disable-next-line no-undef
@@ -471,7 +493,8 @@ button3.addEventListener("click", () => {
         ggbName,
         ggbGuts,
         englishReusedText,
-        spanishReusedText
+        spanishReusedText,
+        matID
     ) {
         loadApplet(ggbName, ggbName.replace("ggb-element", ""));
         const ggbObject = waitForIt(
@@ -484,7 +507,8 @@ button3.addEventListener("click", () => {
                     ggbName,
                     ggbGuts,
                     englishReusedText,
-                    spanishReusedText
+                    spanishReusedText,
+                    matID
                 )
             )
             .then((geoGebraObject) => {
@@ -517,7 +541,6 @@ button3.addEventListener("click", () => {
                 }`;
                 const components = workingJSON.slides[key].contents;
                 for (const compNum of Object.keys(components)) {
-                    console.log(components[compNum]);
                     switch (components[compNum].type) {
                         case "richtexteditor": {
                             const rteDump = document.createElement("p");
@@ -569,30 +592,31 @@ button3.addEventListener("click", () => {
                             const ggbContainer = document.createElement("div");
                             ggbContainer.setAttribute("class", "container");
                             const ggb = document.createElement("div");
+                            const materialID =
+                                components[compNum].config.materialId;
                             ggb.setAttribute(
                                 "id",
-                                "ggb-element".concat(
-                                    components[compNum].config.materialId
-                                )
+                                "ggb-element".concat(materialID)
                             );
+
                             if (
                                 translatedApplet !== "" &&
                                 translatedGlobalJS !== ""
                             ) {
-                                const appletJSON = JSON.parse(translatedApplet);
-                                console.log(appletJSON);
+                                const appletJSON = JSON.parse(
+                                    translatedApplet[materialID]
+                                );
                                 fragment
                                     .appendChild(ggbContainer)
                                     .appendChild(ggb);
                                 const englishReusedText = appletJSON.english;
                                 const spanishReusedText = appletJSON.spanish;
                                 await pauseForTranslation(
-                                    "ggb-element".concat(
-                                        components[compNum].config.materialId
-                                    ),
-                                    components[compNum].geoGebraContent,
+                                    "ggb-element".concat(materialID),
+                                    translatedApplet[materialID],
                                     englishReusedText,
-                                    spanishReusedText
+                                    spanishReusedText,
+                                    materialID
                                 );
                             } else {
                                 console.log(
@@ -600,25 +624,6 @@ button3.addEventListener("click", () => {
                                     typeof translatedGlobalJS
                                 );
                             }
-                            /* // const params = {
-                            //     material_id: `${components[component].materialId}`,
-                            //     appName: "classic",
-                            //     scaleContainerClass: "container",
-                            //     showToolBar: false,
-                            //     showAlgebraInput: false,
-                            //     showMenuBar: false,
-                            //     enableRightClick: false,
-                            //     language: "es",
-                            //     showFullscreenButton: "true",
-                            // };
-                            // // eslint-disable-next-line no-undef
-                            // const applet = new GGBApplet(params);
-                            // applet.inject(
-                            //     "ggb-element".concat(
-                            //         components[component].materialId
-                            //     )
-                            // );*/
-
                             break;
                         }
                         case "pdfviewer": {
@@ -800,43 +805,42 @@ async function translateApplet(
     ggbName,
     translatedText,
     englishReusedText,
-    spanishReusedText
+    spanishReusedText,
+    matID
 ) {
     // get data from textarea
-    // const language = "spanish";
-
+    const language = "spanish";
+    const ggbApplet = window[matID.concat("Id")];
     if (!ggbApplet.exists("defaultGGBLanguage")) {
         ggbApplet.evalCommand("defaultGGBLanguage='Spanish'");
     }
 
     // parse the string into a JSON object
-    // function prettyPrint(ugly) {
-    //     const obj = JSON.parse(ugly);
-    //     return obj;
-    // }
-    // const prettyAltText = prettyPrint(translatedText);
-    const prettyAltText = pastedJSON.value;
-    console.warn(prettyAltText, typeof prettyAltText);
+
     // updates alt text with specified language
     function handleText(englishReusedText, spanishReusedText, translatedText) {
+        const ggbApplet = window[matID.concat("Id")];
         const reusedKeysArray = Object.keys(reusedText.english);
         reusedKeysArray.forEach((key) => {
             englishReusedText[key] = reusedText.english[key];
             spanishReusedText[key] = reusedText.spanish[key];
         });
-
+        const spanishObject = JSON.parse(translatedText).spanish;
         // handles minimum/maximum text, point labels, titles
         const allItems = ggbApplet.getAllObjectNames();
-        allItems.forEach(function (el) {
+        const filteredArray = allItems.filter((el) => {
+            return Object.keys(spanishObject).includes(el);
+        });
+        filteredArray.forEach(function (el) {
             const type = ggbApplet.getObjectType(el);
             switch (type) {
                 // if text
                 case "text": {
                     if (ggbApplet.isIndependent(el)) {
-                        ggbApplet.setTextValue(el, translatedText[el]);
+                        ggbApplet.setTextValue(el, spanishObject[el]);
                     } else {
                         ggbApplet.evalCommand(
-                            el.concat("=", translatedText[el])
+                            el.concat("=", spanishObject[el])
                         );
                     }
                     break;
@@ -844,7 +848,7 @@ async function translateApplet(
                 case "list": {
                     const listXML = ggbApplet.getXML(el);
                     if (listXML.includes("comboBox")) {
-                        const string = translatedText[el];
+                        const string = spanishObject[el];
                         let xmlstring = ggbApplet.getXML();
                         const parser = new DOMParser();
                         const xmldom = parser.parseFromString(
@@ -895,7 +899,7 @@ async function translateApplet(
             if (ggbApplet.getCaption(el) !== "") {
                 ggbApplet.setCaption(
                     el,
-                    translatedText[el.concat("CaptionText")]
+                    spanishObject[el.concat("CaptionText")]
                 );
             }
         });
@@ -903,46 +907,12 @@ async function translateApplet(
 
     // take in globalJS again,
     function handleGlobalJS(englishReusedText, spanishReusedText) {
-        // const pulledGlobalJS = getGlobalJS();
-        // if you find ReadText(something), pull the text
-        // function replaceReadText() {
-        //     // if there's a globalJSText section in the translated JSON object, replace the text in globalJS
-        //     const altTextKeys = Object.keys(prettyAltText[language]);
-        //     if (altTextKeys.includes("globalJSText")) {
-        //         const ggbReadTextKeys = Object.keys(
-        //             prettyAltText[language].globalJSText
-        //         );
-        //         ggbReadTextKeys.forEach((el, index) => {
-        //             pulledGlobalJS = pulledGlobalJS.replace(
-        //                 prettyAltText.english.globalJSText[
-        //                     "GGBReadText" + index
-        //                 ],
-        //                 prettyAltText[language].globalJSText[
-        //                     "GGBReadText" + index
-        //                 ]
-        //             );
-        //         });
-        //     }
-        // }
-
-        // function replaceKIConst() {
-        //     // get keyboard instructions constant, if something has been changed, include it
-        //     pulledGlobalJS = pulledGlobalJS.replace(
-        //         /const keyboardInstructions = \{.*?\}/gs,
-        //         "const keyboardInstructions = ".concat(
-        //             prettyAltText[language].keyboardInstructionsConst
-        //                 .replace(
-        //                     '// A: "Presiona las teclas de flecha para mover este punto.", // example for a point',
-        //                     ""
-        //                 )
-        //                 .replaceAll("// example for a point", "")
-        //         )
-        //     );
-        // }
-
-        // replaceReadText();
-        // replaceKIConst();
-        handleText(englishReusedText, spanishReusedText, translatedText);
+        handleText(
+            englishReusedText,
+            spanishReusedText,
+            translatedText,
+            language
+        );
 
         const fullAppletJSON = ggbApplet.getFileJSON();
 
@@ -980,33 +950,39 @@ async function translateApplet(
     }
 
     handleGlobalJS(englishReusedText, spanishReusedText);
+    // download applet
+    function downloadApplet() {
+        ggbApplet.evalCommand("ScreenDimensions = Corner(5)");
+        ggbApplet.getBase64(function (str64) {
+            const element = document.createElement("a");
+            element.href = window.URL.createObjectURL(
+                new Blob([str64], {
+                    type: "application/vnd.geogebra.file",
+                })
+            );
+            element.download = input1.value + ".ggb";
+            element.click();
+        });
+    }
+    downloadApplet();
 }
 
 // TODO: Fix function to download and name all applets appropriately
-// download applet
-function downloadApplet() {
-    ggbApplet.evalCommand("ScreenDimensions = Corner(5)");
-    ggbApplet.getBase64(function (str64) {
-        const element = document.createElement("a");
-        element.href = window.URL.createObjectURL(
-            new Blob([str64], {
-                type: "application/vnd.geogebra.file",
-            })
-        );
-        element.download = input1.value + ".ggb";
-        element.click();
-    });
-}
+// // download applet
+// function downloadApplet() {
+//     ggbApplet.evalCommand("ScreenDimensions = Corner(5)");
+//     ggbApplet.getBase64(function (str64) {
+//         const element = document.createElement("a");
+//         element.href = window.URL.createObjectURL(
+//             new Blob([str64], {
+//                 type: "application/vnd.geogebra.file",
+//             })
+//         );
+//         element.download = input1.value + ".ggb";
+//         element.click();
+//     });
+// }
 
 button4.addEventListener("click", () => {
-    downloadApplet();
+    // downloadApplet();
 });
-
-// function log(wrapped) {
-//     return function () {
-//         console.log("Starting", wrapped.name, arguments);
-//         const result = wrapped.apply(this, arguments);
-//         console.log("Finished", wrapped.name);
-//         return result;
-//     };
-// }

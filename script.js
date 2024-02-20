@@ -46,7 +46,7 @@ function readFile(event) {
                 case singleFile.name.includes("Applet"): {
                     const materialIdMatch = singleFile.name
                         .replace(/G\dM\dT\wL\d+/, "")
-                        .match(/-\s*([a-z0-9]{8})\s*-/);
+                        .match(/-\s*([a-z0-9]{8})/);
                     if (materialIdMatch.length > 1) {
                         const materialIdFromFile = materialIdMatch[1];
                         if (materialIdFromFile) {
@@ -59,7 +59,7 @@ function readFile(event) {
                 case singleFile.name.includes("GlobalJS"): {
                     const materialIdMatch = singleFile.name
                         .replace(/G\dM\dT\wL\d+/, "")
-                        .match(/-\s*([a-z0-9]{8})\s*-/);
+                        .match(/-\s*([a-z0-9]{8})/);
                     if (materialIdMatch.length > 1) {
                         const materialIdFromFile = materialIdMatch[1];
                         if (materialIdFromFile) {

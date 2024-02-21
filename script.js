@@ -529,7 +529,7 @@ function displayData() {
                     "style",
                     "border-top:1px black solid; margin-top:10px"
                 );
-                slideTitle.textContent = `Slide ${
+                slideTitle.textContent = `Diapositiva ${
                     Number(key.replace("slide", "")) + 1
                 }`;
                 const components = workingJSON.slides[key].contents;

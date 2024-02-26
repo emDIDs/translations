@@ -621,9 +621,9 @@ function displayData() {
                         }
                         case "pdfviewer": {
                             const pdfAdvisory = document.createElement("p");
-                            pdfAdvisory.textContent = `This page contains a PDF with ID: ${components[compNum].data.id}.`;
+                            pdfAdvisory.textContent = `Esta página contiene un PDF con ID: ${components[compNum].data.id}.`;
                             const pdfLink = document.createElement("a");
-                            pdfLink.innerText = "Link to PDF";
+                            pdfLink.innerText = "Enlace al PDF";
                             pdfLink.href = components[compNum].data.downloadUrl;
                             fragment.appendChild(pdfAdvisory);
                             fragment.appendChild(pdfLink);

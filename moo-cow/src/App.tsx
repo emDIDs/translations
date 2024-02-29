@@ -11,53 +11,9 @@ const headerData = {
     placeholderText: "Placeholder Text",
     caption: "Caption",
     label: "Label",
+    id: "PDF ID",
     rowComplete: "Row Complete",
 };
-
-// const itemObject = {
-//     items1: {
-//         name: "input1",
-//         contents: {
-//             data: {
-//                 text: "This is a text input",
-//                 ariaLabel: "Blah blah blah",
-//                 placeholderText: "This is some placeholder stuff.",
-//                 caption: "I don't actually have a caption, ha ha.",
-//             },
-//         },
-//     },
-//     items2: {
-//         name: "rte1",
-//         contents: {
-//             data: {
-//                 text: "This is a text box",
-//                 ariaLabel: "La la la",
-//                 placeholderText: "And some text here.",
-//             },
-//         },
-//     },
-//     items3: {
-//         name: "rte2",
-//         contents: {
-//             data: {
-//                 text: "This is NOT a text box",
-//                 ariaLabel: "Ba ba ba",
-//             },
-//         },
-//     },
-//     items4: {
-//         name: "table1",
-//         contents: {
-//             data: {
-//                 text: "This is a table",
-//                 ariaLabel: "Sis boom bah",
-//                 placeholderText: "This is some more placeholder stuff.",
-//                 caption: "I do actually have a caption.",
-//                 label: "But I don't not have a label.",
-//             },
-//         },
-//     },
-// };
 
 function App() {
     const [submitted, setSubmitted] = useState(false);

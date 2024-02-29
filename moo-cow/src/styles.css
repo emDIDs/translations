@@ -78,6 +78,9 @@ fieldset {
 textarea {
     margin-left: 10px;
 }
+img {
+    max-height: 100px;
+}
 main {
     margin: 3%;
     display: flex;
@@ -90,9 +93,11 @@ table {
     border: 1px black solid;
     margin: 10px;
 }
+
 th {
     font-weight: bold;
 }
+
 th,
 td {
     border: 1px black solid;

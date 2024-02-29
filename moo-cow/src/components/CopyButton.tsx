@@ -1,6 +1,7 @@
 import copy from "../assets/copy-button.svg";
-const handleClick = async (
-    event: React.MouseEventHandler<HTMLButtonElement>
+
+const handleClick: React.MouseEventHandler<HTMLButtonElement> = async (
+    event: React.MouseEvent<HTMLButtonElement>
 ) => {
     const clickedElement = event.target;
     if (clickedElement) {

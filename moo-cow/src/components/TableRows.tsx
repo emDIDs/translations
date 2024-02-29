@@ -18,6 +18,7 @@ interface ComponentDataProps {
     placeholderText?: string;
     caption?: string;
     label?: string;
+    id?: number;
 }
 const TableRows = ({
     component,

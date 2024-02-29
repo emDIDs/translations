@@ -23,6 +23,7 @@ interface ComponentDataProps {
     label?: string;
 }
 const TableBody = ({ headerData, itemObject }: TableBodyProps) => {
+    console.log(itemObject);
     const tableRows = Object.keys(itemObject).map((_itemName, index) => (
         <TableRows
             headerData={headerData}

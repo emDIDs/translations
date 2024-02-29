@@ -9,6 +9,7 @@ interface ContainerProps {
         placeholderText: string;
         caption: string;
         label: string;
+        id: number;
         rowComplete: string;
     };
     itemData: SlideObjectProps;

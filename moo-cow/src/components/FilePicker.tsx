@@ -1,24 +1,31 @@
-const FilePicker = (props) => {
+interface FilePickerProps {
+    passSetItemData: React.Dispatch<React.SetStateAction<string>>;
+    passSetSubmitted: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+const FilePicker = ({ passSetItemData, passSetSubmitted }: FilePickerProps) => {
     const handleFilePicker = (event: React.ChangeEvent<HTMLInputElement>) => {
         const uploadedFiles = event.currentTarget.files;
         if (uploadedFiles) {
             for (const singleFile of uploadedFiles) {
                 const reader = new FileReader();
 
-                const showFile = (file: ProgressEvent) => {
+                const showFile = (file: ProgressEvent<FileReader>) => {
                     const fileNameLI = document.createElement("li");
                     fileNameLI.innerHTML = singleFile.name;
-                    // pastedJSON.appendChild(fileNameLI);
                     if (singleFile.name.includes("Slides") && file.target) {
                         // I can see result.  Why can't I find something of this form in typescript???
                         const translatedSlides = file.target.result;
-                        const translatedObject = JSON.parse(translatedSlides);
-                        console.log(
-                            "TranslatedObject",
-                            translatedObject.slides
-                        );
-                        props.passSetSubmitted(true);
-                        props.passSetItemData(translatedObject.slides);
+                        if (typeof translatedSlides === "string") {
+                            const translatedObject =
+                                JSON.parse(translatedSlides);
+                            console.log(
+                                "TranslatedObject",
+                                translatedObject.slides
+                            );
+                            passSetSubmitted(true);
+                            passSetItemData(translatedObject.slides);
+                        }
                     } else {
                         alert("Oops, wrong file. Try again please.");
                     }

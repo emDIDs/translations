@@ -10,6 +10,7 @@ interface SlideObjectProps {
                     placeholderText?: string;
                     caption?: string;
                     label?: string;
+                    id?: number;
                 };
             };
         };
@@ -23,4 +24,5 @@ interface HeaderDataProps {
     caption: string;
     label: string;
     rowComplete: string;
+    id: number;
 }

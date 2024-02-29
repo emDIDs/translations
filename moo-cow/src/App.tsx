@@ -28,7 +28,7 @@ function App() {
             />
             <SlideContainer
                 submitted={submitted}
-                headerData={headerData}
+                headerData={headerData as HeaderDataProps}
                 itemData={itemData}
             />
         </div>

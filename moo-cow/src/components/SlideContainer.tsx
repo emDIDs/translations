@@ -3,15 +3,7 @@ import TableRows from "./TableRows";
 
 interface ContainerProps {
     submitted: boolean;
-    headerData: {
-        text: string;
-        ariaLabel: string;
-        placeholderText: string;
-        caption: string;
-        label: string;
-        id: number;
-        rowComplete: string;
-    };
+    headerData: HeaderDataProps;
     itemData: SlideObjectProps;
 }
 

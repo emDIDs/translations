@@ -18,11 +18,12 @@ interface SlideObjectProps {
 }
 
 interface HeaderDataProps {
+    name: string;
     text: string;
     ariaLabel: string;
     placeholderText: string;
     caption: string;
     label: string;
+    id: string;
     rowComplete: string;
-    id: number;
 }

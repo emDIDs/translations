@@ -952,6 +952,7 @@ async function translateApplet(
 
         function loadAppletLast() {
             const apiID = matID.concat("Id", count);
+            // the material ID being d5mfqpx5 is REALLY IMPORTANT. If you use the applet's actual matID, you'll register keyup listeners twice. And not know why. And break everything trying to figure out why keyboard instructions don't work.  Save the effort - don't change this.
             const params = {
                 material_id: "d5mfqpx5",
                 appName: "classic",
@@ -967,7 +968,6 @@ async function translateApplet(
                 },
             };
 
-            // TODO: FIGURE OUT WHY LISTENERS ARE DUPLICATED AND FIX IT!
             // eslint-disable-next-line no-undef
             const applet = new GGBApplet(params);
             applet.inject(ggbName);

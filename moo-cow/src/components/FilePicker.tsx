@@ -6,10 +6,10 @@ interface FilePickerProps {
 const FilePicker = ({ passSetItemData, passSetSubmitted }: FilePickerProps) => {
     const handleFilePicker = (event: React.ChangeEvent<HTMLInputElement>) => {
         const uploadedFiles = event.currentTarget.files;
+        let alertBypass = false;
         if (uploadedFiles) {
             for (const singleFile of uploadedFiles) {
                 const reader = new FileReader();
-
                 const showFile = (file: ProgressEvent<FileReader>) => {
                     const fileNameLI = document.createElement("li");
                     fileNameLI.innerHTML = singleFile.name;
@@ -27,7 +27,13 @@ const FilePicker = ({ passSetItemData, passSetSubmitted }: FilePickerProps) => {
                             passSetItemData(translatedObject.slides);
                         }
                     } else {
-                        alert("Oops, wrong file. Try again please.");
+                        if (!alertBypass) {
+                            alert(
+                                'Oops, you included some incorrect files. Please only use "Slides" files.'
+                            );
+                        }
+                        alertBypass = true;
+                        return;
                     }
                 };
 

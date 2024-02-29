@@ -470,7 +470,8 @@ function displayData() {
         slideContainer.removeChild(slideContainer.firstChild);
     }
     // load applet
-    function loadAppletAgain(ggbName, matID) {
+    // TODO: REPLACE ALL COMPNUM WITH SOME KIND OF COUNTER!
+    function loadAppletAgain(ggbName, matID, compNum) {
         const params = {
             // eslint-disable-next-line camelcase
             material_id: matID,
@@ -481,7 +482,7 @@ function displayData() {
             showMenuBar: false,
             enableRightClick: false,
             language: "es",
-            id: matID.concat("Id"),
+            id: matID.concat("Id", compNum),
         };
 
         // eslint-disable-next-line no-undef
@@ -493,9 +494,10 @@ function displayData() {
         ggbGuts,
         englishReusedText,
         spanishReusedText,
-        matID
+        matID,
+        count
     ) {
-        loadAppletAgain(ggbName, ggbName.replace("ggb-element", ""));
+        loadAppletAgain(ggbName, matID, count);
         const ggbObject = waitForIt(
             () =>
                 document.querySelector("canvas") &&
@@ -507,7 +509,8 @@ function displayData() {
                     ggbGuts,
                     englishReusedText,
                     spanishReusedText,
-                    matID
+                    matID,
+                    count
                 )
             )
             .then((geoGebraObject) => {
@@ -519,6 +522,8 @@ function displayData() {
         workingJSON = JSON.parse(translatedSlides);
         if (workingJSON.globalId) {
             const workingKeys = Object.keys(workingJSON.slides);
+            let count = 0;
+
             for (const key of workingKeys) {
                 const fragment = document.createDocumentFragment();
                 const slideSeparator = document.createElement("div");
@@ -529,7 +534,7 @@ function displayData() {
                     "style",
                     "border-top:1px black solid; margin-top:10px"
                 );
-                slideTitle.textContent = `Diapositiva ${
+                slideTitle.textContent = `Slide/Diapositiva ${
                     Number(key.replace("slide", "")) + 1
                 }`;
                 const components = workingJSON.slides[key].contents;
@@ -582,6 +587,7 @@ function displayData() {
                             break;
                         }
                         case "geogebra": {
+                            count++;
                             const ggbContainer = document.createElement("div");
                             ggbContainer.setAttribute("class", "container");
                             const ggb = document.createElement("div");
@@ -589,12 +595,11 @@ function displayData() {
                                 components[compNum].config.materialId;
                             ggb.setAttribute(
                                 "id",
-                                "ggb-element".concat(materialID)
+                                "ggb-element".concat(count, "-", materialID)
                             );
-
                             if (
-                                translatedApplet !== "" &&
-                                translatedGlobalJS !== ""
+                                Object.keys(translatedApplet).length !== 0 &&
+                                Object.keys(translatedGlobalJS).length !== 0
                             ) {
                                 const appletJSON = JSON.parse(
                                     translatedApplet[materialID]
@@ -605,11 +610,16 @@ function displayData() {
                                 const englishReusedText = appletJSON.english;
                                 const spanishReusedText = appletJSON.spanish;
                                 await pauseForTranslation(
-                                    "ggb-element".concat(materialID),
+                                    "ggb-element".concat(
+                                        count,
+                                        "-",
+                                        materialID
+                                    ),
                                     translatedApplet[materialID],
                                     englishReusedText,
                                     spanishReusedText,
-                                    materialID
+                                    materialID,
+                                    count
                                 );
                             } else {
                                 console.log(
@@ -621,9 +631,9 @@ function displayData() {
                         }
                         case "pdfviewer": {
                             const pdfAdvisory = document.createElement("p");
-                            pdfAdvisory.textContent = `Esta página contiene un PDF con ID: ${components[compNum].data.id}.`;
+                            pdfAdvisory.textContent = `This page contains a PDF with ID/Esta página contiene un PDF con ID: ${components[compNum].data.id}.`;
                             const pdfLink = document.createElement("a");
-                            pdfLink.innerText = "Enlace al PDF";
+                            pdfLink.innerText = "Link to PDF/Enlace al PDF";
                             pdfLink.href = components[compNum].data.downloadUrl;
                             fragment.appendChild(pdfAdvisory);
                             fragment.appendChild(pdfLink);
@@ -738,7 +748,7 @@ function displayData() {
                         }
                         case "categorization": {
                             const nameDump = document.createElement("p");
-                            nameDump.innerText = "Categories";
+                            nameDump.innerText = "Categories/Categorías";
                             fragment.appendChild(nameDump);
                             const categDump = document.createElement("ul");
                             Object.values(
@@ -750,7 +760,7 @@ function displayData() {
                             });
                             fragment.appendChild(categDump);
                             const nameDump2 = document.createElement("p");
-                            nameDump2.innerText = "Items";
+                            nameDump2.innerText = "Items/Elementos";
                             fragment.appendChild(nameDump2);
                             const itemDump = document.createElement("ul");
                             Object.values(
@@ -804,24 +814,36 @@ async function translateApplet(
     translatedText,
     englishReusedText,
     spanishReusedText,
-    matID
+    matID,
+    count
 ) {
     // get data from textarea
-    const language = "spanish";
-    const ggbApplet = window[matID.concat("Id")];
-    if (!ggbApplet.exists("defaultGGBLanguage")) {
-        ggbApplet.evalCommand("defaultGGBLanguage='Spanish'");
+    const ggbApplet = window[matID.concat("Id", count)];
+    if (
+        !ggbApplet.exists("defaultGGBLanguage") ||
+        ggbApplet.getValueString("defaultGGBLanguage") === ""
+    ) {
+        ggbApplet.evalCommand('defaultGGBLanguage="Spanish"');
+    } else if (ggbApplet.getValueString("defaultGGBLanguage") !== "Spanish") {
+        ggbApplet.setTextValue("defaultGGBLanguage", "Spanish");
     }
+    ggbApplet.evalCommand("SetConditionToShowObject(defaultGGBLanguage,false)");
 
     // updates alt text with specified language
-    function handleText(englishReusedText, spanishReusedText, translatedText) {
-        const ggbApplet = window[matID.concat("Id")];
+    function handleText(
+        englishReusedText,
+        spanishReusedText,
+        translatedText,
+        count
+    ) {
+        const ggbApplet = window[matID.concat("Id", count)];
+
         const reusedKeysArray = Object.keys(reusedText.english);
         reusedKeysArray.forEach((key) => {
             englishReusedText[key] = reusedText.english[key];
             spanishReusedText[key] = reusedText.spanish[key];
         });
-        const spanishObject = JSON.parse(translatedText).spanish;
+        const spanishObject = spanishReusedText;
         // handles minimum/maximum text, point labels, titles
         const allItems = ggbApplet.getAllObjectNames();
         const filteredArray = allItems.filter((el) => {
@@ -838,9 +860,11 @@ async function translateApplet(
                     if (ggbApplet.isIndependent(el)) {
                         ggbApplet.setTextValue(el, spanishObject[el]);
                     } else {
-                        ggbApplet.evalCommand(
-                            el.concat("=", spanishObject[el])
-                        );
+                        if (el !== "escText") {
+                            ggbApplet.evalCommand(
+                                el.concat("=", spanishObject[el])
+                            );
+                        }
                     }
                     break;
                 }
@@ -893,8 +917,6 @@ async function translateApplet(
                     break;
                 }
                 default: {
-                    console.log(ggbApplet);
-                    console.log(el);
                     if (ggbApplet.getCaption(el) !== "") {
                         ggbApplet.setCaption(
                             el,
@@ -908,15 +930,10 @@ async function translateApplet(
     }
 
     // take in globalJS again,
-    function handleGlobalJS(englishReusedText, spanishReusedText) {
-        handleText(
-            englishReusedText,
-            spanishReusedText,
-            translatedText,
-            language
-        );
+    function handleGlobalJS(englishReusedText, spanishReusedText, count) {
+        handleText(englishReusedText, spanishReusedText, translatedText, count);
 
-        const ggbApplet = window[matID.concat("Id")];
+        const ggbApplet = window[matID.concat("Id", count)];
         const fullAppletJSON = ggbApplet.getFileJSON();
 
         let archiveNum = -1;
@@ -934,9 +951,9 @@ async function translateApplet(
             translatedGlobalJS[matID];
 
         function loadAppletLast() {
-            const apiID = matID.concat("Id");
+            const apiID = matID.concat("Id", count);
             const params = {
-                material_id: matID,
+                material_id: "d5mfqpx5",
                 appName: "classic",
                 height: 650,
                 showToolBar: false,
@@ -950,14 +967,16 @@ async function translateApplet(
                 },
             };
 
+            // TODO: FIGURE OUT WHY LISTENERS ARE DUPLICATED AND FIX IT!
             // eslint-disable-next-line no-undef
             const applet = new GGBApplet(params);
             applet.inject(ggbName);
         }
+
         loadAppletLast();
     }
 
-    handleGlobalJS(englishReusedText, spanishReusedText);
+    handleGlobalJS(englishReusedText, spanishReusedText, count);
     // download applet
     function downloadApplet() {
         const slideData = document.querySelectorAll("#slide-data");

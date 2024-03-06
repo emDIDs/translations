@@ -98,6 +98,11 @@ function gatherData(download = false) {
         )
             .then((response) => response.json())
             .then(async function (data) {
+                console.log(data.errors);
+                if (data.errors) {
+                    alert(data.errors[0].details);
+                    return;
+                }
                 const downloadedGGB = [];
                 for (const item in data.slides) {
                     const { contents } = data.slides[item];

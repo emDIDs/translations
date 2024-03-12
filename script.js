@@ -88,11 +88,12 @@ function gatherData(download = false) {
     }
     const globalID = input1.value;
     try {
+        const authToken = prompt("Enter authorization token")
         fetch(
             `https://digital.greatminds.org/lessons/api/authoring/v2/preview/version/${globalID}`,
             {
                 headers: {
-                    authorization: `Basic YXV0aG9yaW5nYWRtaW46WnhDd3RXZmNpNyt0alRLcXJ1eG5kZz09`,
+                    authorization: `Basic ${authToken}`,
                 },
             }
         )

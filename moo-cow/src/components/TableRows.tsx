@@ -1,61 +1,110 @@
-import CopyButton from "./CopyButton";
 import Checkbox from "./Checkbox";
+import TableCells from "./TableCells";
 
 interface TableRowsProps {
     component?: ComponentProps;
-    headerData: HeaderDataProps;
+    headerData?: HeaderDataProps;
+    headerStrings: string[];
     header?: boolean;
-}
-
-interface ComponentProps {
-    name: string;
-    data: ComponentDataProps;
-}
-
-interface ComponentDataProps {
-    text: string;
-    ariaLabel: string;
-    placeholderText?: string;
-    caption?: string;
-    label?: string;
-    id?: number;
 }
 const TableRows = ({
     component,
-    headerData,
+    headerStrings,
     header = false,
 }: TableRowsProps) => {
-    console.log("TableRows:", component);
-    if (header) {
-        const headerCells = Object.keys(headerData).map(
-            (item: string, index) => (
-                <th key={`${item} ${index}`}>
-                    {headerData[item as keyof HeaderDataProps]}
-                </th>
-            )
-        );
+    if (header && headerStrings) {
+        console.log("HEADERDATA", headerStrings);
+        const headerCells = headerStrings.map((item: string, index) => (
+            <th key={`${item} ${index}`}>{headerStrings[index]}</th>
+        ));
         return <tr>{headerCells}</tr>;
     }
-    if (component && headerData) {
-        const tableCells = Object.keys(headerData).map((item, index) => (
-            <td key={`cell${item}${index}`}>
-                {component.data[item as keyof ComponentDataProps] ? (
-                    <CopyButton />
-                ) : null}
-                {Object.keys(component.data).includes(item) ? (
-                    `${component.data[item as keyof ComponentDataProps]}`
-                ) : headerData[item as keyof HeaderDataProps] ==
-                  "Row Complete" ? (
-                    <Checkbox rowName={`checkbox${item}${index}`} />
-                ) : headerData[item as keyof HeaderDataProps] ==
-                  "Component Name" ? (
-                    `${component.name}`
-                ) : (
-                    ""
+    if (component && headerStrings) {
+        const { name, type, data, config } = component;
+        let headers = [];
+        switch (type) {
+            case "button":
+            case "textbox":
+            case "richtexteditor": {
+                headers = [name, data?.text, data?.ariaLabel];
+                break;
+            }
+            case "input": {
+                headers = [
+                    name,
+                    data?.text,
+                    data?.ariaLabel,
+                    data?.placeholder,
+                    data?.label,
+                ];
+                break;
+            }
+            case "image": {
+                headers = [
+                    name,
+                    data?.src,
+                    data?.ariaLabel,
+                    data?.alt,
+                    data?.caption,
+                    data?.copyright,
+                    data?.config?.workflowId,
+                ];
+                break;
+            }
+            case "geogebra": {
+                headers = [name, data?.ariaLabel, config?.materialId];
+                break;
+            }
+            case "media": {
+                headers = [name, data?.ariaLabel, config?.alt, config?.src];
+                break;
+            }
+            case "pdf": {
+                headers = [
+                    name,
+                    data?.ariaLabel,
+                    data?.downloadUrl,
+                    data?.id?.toString(),
+                ];
+                break;
+            }
+            case "select": {
+                headers = [name, data?.ariaLabel];
+                break;
+            }
+            default:
+                console.warn(`Looks like you forgot one of type ${type}!`);
+                break;
+        }
+        return (
+            <tr>
+                {headers.map((item) =>
+                    item === name ? (
+                        <TableCells
+                            componentBit={item}
+                            copy={false}
+                            name={name}
+                            type={type}
+                        />
+                    ) : item !== "" ? (
+                        <TableCells
+                            componentBit={item}
+                            name={name}
+                            type={type}
+                        />
+                    ) : (
+                        <td></td>
+                    )
                 )}
-            </td>
-        ));
-        return <tr>{tableCells}</tr>;
+                {type !== "studentanswers" && type !== "separator" ? (
+                    <td>
+                        <Checkbox rowName={`${name}${type}`} />
+                    </td>
+                ) : (
+                    <></>
+                )}
+            </tr>
+        );
     }
 };
 

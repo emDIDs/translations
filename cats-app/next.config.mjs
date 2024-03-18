@@ -9,6 +9,12 @@ const nextConfig = {
                 port: "",
                 pathname: "/**",
             },
+            {
+                protocol: "https",
+                hostname: "cdn.digital.greatminds.org",
+                port: "",
+                pathname: "/**",
+            },
         ],
     },
 };

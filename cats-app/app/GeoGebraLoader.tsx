@@ -1,5 +1,4 @@
 
-
 type GeoGebraProps = {
   translatedApplet: any;
   translatedGlobalJS: any;

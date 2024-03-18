@@ -4,16 +4,20 @@ import FilePicker from "./FilePicker";
 import SlideData from "./SlideData";
 import translatedSlides from "../public/Slides - An Experiment with Ratios and Rates_SPA.json";
 
-
 import { useState } from "react";
 const workingJSON = JSON.parse(JSON.stringify(translatedSlides));
 const workingKeys = Object.keys(workingJSON.slides);
-const handleOnClick = () => {
-    console.log("worry about GeoGebra first, then this click listener");
-};
 const Main = () => {
     const [submitted, setSubmitted] = useState(false);
     const [itemData, setItemData] = useState({});
+    const [appletData, setAppletData] = useState({});
+    const [globalJSData, setGlobalJSData] = useState({});
+
+    const handleOnClick = () => {
+        setSubmitted(true);
+        console.log(submitted);
+        console.log("worry about GeoGebra first, then this click listener");
+    };
     return (
         <div>
             <fieldset>
@@ -22,8 +26,9 @@ const Main = () => {
                     <a target="_blank" id="downloadJSON-link"></a>
                     <div id="ggb-element"></div>
                     <FilePicker
-                        passSetSubmitted={setSubmitted}
                         passSetItemData={setItemData}
+                        passSetAppletData={setAppletData}
+                        passSetGlobalJSData={setGlobalJSData}
                     />
                 </div>
                 <div className="grouper">
@@ -41,7 +46,12 @@ const Main = () => {
                     </button>
                 </div>
             </fieldset>
-            <SlideData workingJSON={workingJSON} workingKeys={workingKeys} />
+            <SlideData
+                workingJSON={itemData}
+                workingKeys={Object.keys(itemData)}
+                appletData={appletData}
+                globalJSData={globalJSData}
+            />
         </div>
     );
 };

@@ -12,13 +12,12 @@ const TableCell = ({
     colNum,
     el,
 }: TableCellProps) => {
-    if (components[compNum].data.rows[rowNum][colNum].scope) {
+    if (!components[compNum].data.rows[rowNum][colNum].scope) {
         return (
             <td
                 aria-label={
                     components[compNum].data.rows[rowNum][colNum].ariaLabel
-                }
-                key={`cell${el}${colNum}`}>
+                }>
                 {components[compNum].data.rows[rowNum][colNum].value}
             </td>
         );
@@ -27,8 +26,7 @@ const TableCell = ({
             <th
                 aria-label={
                     components[compNum].data.rows[rowNum][colNum].ariaLabel
-                }
-                key={`header${el}${colNum}`}>
+                }>
                 {components[compNum].data.rows[rowNum][colNum].value}
             </th>
         );

@@ -63,236 +63,279 @@ const SlideContent = ({
             case "geogebra": {
                 // TODO: fix counter and GeoGebra render
                 const matID = components[compNum].config.materialId;
-                console.log(matID.concat("Id", count));
-
+                const APIID = matID.concat("Id", count).toString();
                 useEffect(() => {
-                    const params = {
-                        // eslint-disable-next-line camelcase
-                        material_id: matID,
-                        appName: "classic",
-                        height: 650,
-                        showToolBar: false,
-                        showAlgebraInput: false,
-                        showMenuBar: false,
-                        enableRightClick: false,
-                        language: "en",
-                        id: matID.concat("Id"),
-                    };
-
-                    // eslint-disable-next-line no-undef
-                    const applet = new GGBApplet(params, true);
-                    applet.inject(
-                        `ggb-element${count}-${components[compNum].config.materialId}`
-                    );
-                    console.warn(matID.concat("Id", count));
                     const translateApplet = (
                         ggbName: string,
-                        translatedText: any,
-                        englishReusedText: any,
-                        spanishReusedText: any,
+                        translatedText: {
+                            english: { [x: string]: string };
+                            spanish: { [x: string]: string };
+                        },
                         matID: string,
                         count: any
                     ) => {
-                        // get data from textarea
-                        console.warn(matID.concat("Id", count));
-                        const ggbApplet =
-                            window[matID.concat("Id", count) as keyof Window];
-                        // if (
-                        //     !ggbApplet.exists("defaultGGBLanguage") ||
-                        //     ggbApplet.getValueString("defaultGGBLanguage") === ""
-                        // ) {
-                        //     ggbApplet.evalCommand('defaultGGBLanguage="Spanish"');
-                        // } else if (
-                        //     ggbApplet.getValueString("defaultGGBLanguage") !== "Spanish"
-                        // ) {
-                        //     ggbApplet.setTextValue("defaultGGBLanguage", "Spanish");
-                        // }
-                        // ggbApplet.evalCommand(
-                        //     "SetConditionToShowObject(defaultGGBLanguage,false)"
-                        // );
+                        const ggbApplet = window[APIID as keyof Window];
+                        const handleDefaultLanguage = () => {
+                            if (
+                                !ggbApplet.exists("defaultGGBLanguage") ||
+                                ggbApplet.getValueString(
+                                    "defaultGGBLanguage"
+                                ) === ""
+                            ) {
+                                ggbApplet.evalCommand(
+                                    'defaultGGBLanguage="Spanish"'
+                                );
+                            } else if (
+                                ggbApplet.getValueString(
+                                    "defaultGGBLanguage"
+                                ) !== "Spanish"
+                            ) {
+                                ggbApplet.setTextValue(
+                                    "defaultGGBLanguage",
+                                    "Spanish"
+                                );
+                            }
+                            ggbApplet.evalCommand(
+                                "SetConditionToShowObject(defaultGGBLanguage,false)"
+                            );
+                        };
+                        // updates alt text with specified language
+                        const handleText = ({
+                            translatedSpanishText,
+                        }: {
+                            translatedSpanishText: {
+                                [x: string]: string;
+                            };
+                        }) => {
+                            // handles minimum/maximum text, point labels, titles
+                            const allItems = ggbApplet.getAllObjectNames();
+                            const filteredArray = allItems.filter(
+                                (el: string) => {
+                                    return (
+                                        Object.keys(
+                                            translatedSpanishText
+                                        ).includes(el) ||
+                                        Object.keys(
+                                            translatedSpanishText
+                                        ).includes(el.concat("CaptionText"))
+                                    );
+                                }
+                            );
+                            filteredArray.forEach(function (el: string) {
+                                const type = ggbApplet.getObjectType(el);
+                                switch (type) {
+                                    // if text
+                                    case "text": {
+                                        if (ggbApplet.isIndependent(el)) {
+                                            ggbApplet.setTextValue(
+                                                el,
+                                                translatedSpanishText[el]
+                                            );
+                                        } else {
+                                            if (el !== "escText") {
+                                                ggbApplet.evalCommand(
+                                                    el.concat(
+                                                        "=",
+                                                        translatedSpanishText[
+                                                            el
+                                                        ]
+                                                    )
+                                                );
+                                            }
+                                        }
+                                        break;
+                                    }
+                                    case "list": {
+                                        const listXML = ggbApplet.getXML(el);
+                                        if (listXML.includes("comboBox")) {
+                                            const string =
+                                                translatedSpanishText[el];
+                                            let xmlstring = ggbApplet.getXML();
+                                            const parser = new DOMParser();
+                                            const xmldom =
+                                                parser.parseFromString(
+                                                    xmlstring,
+                                                    "application/xml"
+                                                );
 
-                        // // updates alt text with specified language
-                        // function handleText(
-                        //     englishReusedText: { [x: string]: any },
-                        //     spanishReusedText: { [x: string]: any },
-                        //     translatedText: { conditions: { [x: string]: any } },
-                        //     count: any
-                        // ) {
-                        //     const ggbApplet = window[matID.concat("Id", count)];
+                                            // if there's a list, edit it
+                                            const listNode =
+                                                xmldom.querySelectorAll(
+                                                    'comboBox[val="true"]'
+                                                );
+                                            listNode.forEach((element) => {
+                                                if (element.parentElement) {
+                                                    const parentName =
+                                                        element.parentElement.getAttribute(
+                                                            "label"
+                                                        );
+                                                    const value =
+                                                        xmldom.querySelectorAll(
+                                                            `expression[label=${parentName}]`
+                                                        );
+                                                    value.forEach((el) => {
+                                                        el.setAttribute(
+                                                            "exp",
+                                                            string
+                                                        );
+                                                        const serializer =
+                                                            new XMLSerializer();
+                                                        const listString =
+                                                            serializer.serializeToString(
+                                                                el
+                                                            );
+                                                        ggbApplet.evalXML(
+                                                            listString
+                                                        );
+                                                    });
+                                                }
+                                            });
 
-                        //     const reusedKeysArray = Object.keys(reusedText.english);
-                        //     reusedKeysArray.forEach((key) => {
-                        //         englishReusedText[key] = reusedText.english[key];
-                        //         spanishReusedText[key] = reusedText.spanish[key];
-                        //     });
-                        //     const spanishObject = spanishReusedText;
-                        //     // handles minimum/maximum text, point labels, titles
-                        //     const allItems = ggbApplet.getAllObjectNames();
-                        //     const filteredArray = allItems.filter((el: string) => {
-                        //         return (
-                        //             Object.keys(spanishObject).includes(el) ||
-                        //             Object.keys(spanishObject).includes(
-                        //                 el.concat("CaptionText")
-                        //             )
-                        //         );
-                        //     });
-                        //     filteredArray.forEach(function (el: string) {
-                        //         const type = ggbApplet.getObjectType(el);
-                        //         switch (type) {
-                        //             // if text
-                        //             case "text": {
-                        //                 if (ggbApplet.isIndependent(el)) {
-                        //                     ggbApplet.setTextValue(el, spanishObject[el]);
-                        //                 } else {
-                        //                     if (el !== "escText") {
-                        //                         ggbApplet.evalCommand(
-                        //                             el.concat("=", spanishObject[el])
-                        //                         );
-                        //                     }
-                        //                 }
-                        //                 break;
-                        //             }
-                        //             case "list": {
-                        //                 const listXML = ggbApplet.getXML(el);
-                        //                 if (listXML.includes("comboBox")) {
-                        //                     const string = spanishObject[el];
-                        //                     let xmlstring = ggbApplet.getXML();
-                        //                     const parser = new DOMParser();
-                        //                     const xmldom = parser.parseFromString(
-                        //                         xmlstring,
-                        //                         "application/xml"
-                        //                     );
+                                            // if someone used SelectedElement instead of SelectedIndex, edit it
+                                            const conditionsShowObject =
+                                                xmldom.querySelectorAll(
+                                                    `condition[showObject*="SelectedElement"]`
+                                                );
+                                            if (
+                                                conditionsShowObject.length > 0
+                                            ) {
+                                                const matches = xmlstring.match(
+                                                    /<condition showObject="SelectedElement\[.*\].*&quot;(.*)&quot;.*"/g
+                                                );
+                                                matches.forEach(
+                                                    (
+                                                        element: any,
+                                                        index: number
+                                                    ) => {
+                                                        xmlstring =
+                                                            xmlstring.replace(
+                                                                element,
+                                                                translatedSpanishText
+                                                                    .conditions[
+                                                                    index
+                                                                ]
+                                                            );
+                                                    }
+                                                );
+                                            }
+                                        }
+                                        break;
+                                    }
+                                    default: {
+                                        if (ggbApplet.getCaption(el) !== "") {
+                                            ggbApplet.setCaption(
+                                                el,
+                                                translatedSpanishText[
+                                                    el.concat("CaptionText")
+                                                ]
+                                            );
+                                        }
+                                        break;
+                                    }
+                                }
+                            });
+                            return true;
+                        };
+                        // take in globalJS again,
+                        const handleGlobalJS = ({
+                            globalJSData,
+                            textHandled,
+                            count,
+                        }: {
+                            globalJSData: any;
+                            textHandled: boolean;
+                            count: any;
+                        }) => {
+                            if (textHandled) {
+                                const fullAppletJSON = ggbApplet.getFileJSON();
+                                let archiveNum = -1;
+                                const jsonArchive =
+                                    ggbApplet.getFileJSON().archive;
+                                const jsonKeysArray = Object.keys(jsonArchive);
+                                jsonKeysArray.some(function (element) {
+                                    if (
+                                        jsonArchive[element].fileName ===
+                                        "geogebra_javascript.js"
+                                    ) {
+                                        archiveNum = Number(element);
+                                        return true;
+                                    }
+                                    return false;
+                                });
 
-                        //                     // if there's a list, edit it
-                        //                     const listNode = xmldom.querySelectorAll(
-                        //                         'comboBox[val="true"]'
-                        //                     );
-                        //                     listNode.forEach((element) => {
-                        //                         const parentName =
-                        //                             element.parentElement.getAttribute("label");
-                        //                         const value = xmldom.querySelectorAll(
-                        //                             `expression[label=${parentName}]`
-                        //                         );
-                        //                         value.forEach((el) => {
-                        //                             el.setAttribute("exp", string);
-                        //                             const serializer = new XMLSerializer();
-                        //                             const listString =
-                        //                                 serializer.serializeToString(el);
-                        //                             ggbApplet.evalXML(listString);
-                        //                         });
-                        //                     });
+                                fullAppletJSON.archive[archiveNum].fileContent =
+                                    globalJSData[matID];
+                                return fullAppletJSON;
+                            }
+                        };
+                        const loadAppletLast = ({ fullAppletJSON }: any) => {
+                            const apiID = matID.concat("Id", count);
+                            // the material ID being d5mfqpx5 is REALLY IMPORTANT. If you use the applet's actual matID, you'll register keyup listeners twice. And not know why. And break everything trying to figure out why keyboard instructions don't work.  Save the effort - don't change this.
+                            const params = {
+                                material_id: "d5mfqpx5",
+                                appName: "classic",
+                                height: 650,
+                                showToolBar: false,
+                                showAlgebraInput: false,
+                                showMenuBar: false,
+                                enableRightClick: false,
+                                language: "es",
+                                id: apiID,
+                                appletOnLoad(apiID: {
+                                    setFileJSON: (arg0: any) => void;
+                                }) {
+                                    apiID.setFileJSON(fullAppletJSON);
+                                },
+                            };
 
-                        //                     // if someone used SelectedElement instead of SelectedIndex, edit it
-                        //                     const conditionsShowObject =
-                        //                         xmldom.querySelectorAll(
-                        //                             `condition[showObject*="SelectedElement"]`
-                        //                         );
-                        //                     if (conditionsShowObject.length > 0) {
-                        //                         const matches = xmlstring.match(
-                        //                             /<condition showObject="SelectedElement\[.*\].*&quot;(.*)&quot;.*"/g
-                        //                         );
-                        //                         matches.forEach(
-                        //                             (element: any, index: string | number) => {
-                        //                                 xmlstring = xmlstring.replace(
-                        //                                     element,
-                        //                                     translatedText.conditions[index]
-                        //                                 );
-                        //                             }
-                        //                         );
-                        //                     }
-                        //                 }
-                        //                 break;
-                        //             }
-                        //             default: {
-                        //                 if (ggbApplet.getCaption(el) !== "") {
-                        //                     ggbApplet.setCaption(
-                        //                         el,
-                        //                         spanishObject[el.concat("CaptionText")]
-                        //                     );
-                        //                 }
-                        //                 break;
-                        //             }
-                        //         }
-                        //     });
-                        // }
-
-                        // // take in globalJS again,
-                        // function handleGlobalJS(
-                        //     englishReusedText: any,
-                        //     spanishReusedText: any,
-                        //     count: any
-                        // ) {
-                        //     handleText(
-                        //         englishReusedText,
-                        //         spanishReusedText,
-                        //         translatedText,
-                        //         count
-                        //     );
-
-                        //     const ggbApplet = window[matID.concat("Id", count)];
-                        //     const fullAppletJSON = ggbApplet.getFileJSON();
-
-                        //     let archiveNum = -1;
-                        //     const jsonArchive = ggbApplet.getFileJSON().archive;
-                        //     const jsonKeysArray = Object.keys(jsonArchive);
-                        //     jsonKeysArray.some(function (element) {
-                        //         if (
-                        //             jsonArchive[element].fileName === "geogebra_javascript.js"
-                        //         ) {
-                        //             archiveNum = Number(element);
-                        //             return true;
-                        //         }
-                        //         return false;
-                        //     });
-
-                        //     fullAppletJSON.archive[archiveNum].fileContent =
-                        //         globalJSData[matID];
-
-                        //     function loadAppletLast() {
-                        //         const apiID = matID.concat("Id", count);
-                        //         // the material ID being d5mfqpx5 is REALLY IMPORTANT. If you use the applet's actual matID, you'll register keyup listeners twice. And not know why. And break everything trying to figure out why keyboard instructions don't work.  Save the effort - don't change this.
-                        //         const params = {
-                        //             material_id: "d5mfqpx5",
-                        //             appName: "classic",
-                        //             height: 650,
-                        //             showToolBar: false,
-                        //             showAlgebraInput: false,
-                        //             showMenuBar: false,
-                        //             enableRightClick: false,
-                        //             language: "es",
-                        //             id: apiID,
-                        //             appletOnLoad(apiID: { setFileJSON: (arg0: any) => void }) {
-                        //                 apiID.setFileJSON(fullAppletJSON);
-                        //             },
-                        //         };
-
-                        //         // eslint-disable-next-line no-undef
-                        //         const applet = new GGBApplet(params);
-                        //         applet.inject(ggbName);
-                        //     }
-
-                        //     loadAppletLast();
-                        // }
-
-                        // handleGlobalJS(englishReusedText, spanishReusedText, count);
+                            // eslint-disable-next-line no-undef
+                            const applet = new GGBApplet(params);
+                            applet.inject(ggbName);
+                        };
+                        handleDefaultLanguage();
+                        setTimeout(() => {
+                            loadAppletLast({
+                                fullAppletJSON: handleGlobalJS({
+                                    globalJSData,
+                                    textHandled: handleText({
+                                        translatedSpanishText:
+                                            translatedText.spanish,
+                                    }),
+                                    count,
+                                }),
+                            });
+                        }, 1000);
                     };
-                    // if (
-                    //     Object.keys(appletData).length !== 0 &&
-                    //     Object.keys(globalJSData).length !== 0
-                    // ) {
-                    const appletJSON = appletData[matID];
-                    const englishReusedText = appletJSON.english;
-                    const spanishReusedText = appletJSON.spanish;
 
-                    translateApplet(
-                        "ggb-element".concat(count, "-", matID),
-                        appletData[matID],
-                        englishReusedText,
-                        spanishReusedText,
-                        matID,
-                        count
-                    );
-                }, []);
+                    //load the applet the first time to get data
+                    const loadAppletFirst = () => {
+                        const params = {
+                            // eslint-disable-next-line camelcase
+                            material_id: matID,
+                            appName: "classic",
+                            height: 650,
+                            showToolBar: false,
+                            showAlgebraInput: false,
+                            showMenuBar: false,
+                            enableRightClick: false,
+                            language: "en",
+                            id: APIID,
+                            appletOnLoad() {
+                                translateApplet(
+                                    "ggb-element".concat(count, "-", matID),
+                                    appletData[matID],
+                                    matID,
+                                    count
+                                );
+                            },
+                        };
+                        const applet = new GGBApplet(params, true);
+                        applet.inject(
+                            `ggb-element${count}-${components[compNum].config.materialId}`
+                        );
+                    };
+                    loadAppletFirst();
+                });
                 return (
                     <div
                         className="container"

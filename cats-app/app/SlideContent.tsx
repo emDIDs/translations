@@ -12,6 +12,7 @@ const SlideContent = ({
     globalJSData,
 }: any) => {
     const data = Object.keys(components).map((_item, compNum) => {
+        console.log(components[compNum]);
         switch (components[compNum].type) {
             case "richtexteditor": {
                 return (
@@ -455,6 +456,28 @@ const SlideContent = ({
                             )}
                         </ul>
                     </div>
+                );
+            }
+            case "media": {
+                return (
+                    <Link
+                        key={`videoLink${slideNum}${compNum}`}
+                        href={components[compNum].config.src}>
+                        Link to video/Enlace al video
+                    </Link>
+                );
+            }
+            case "input": {
+                return (
+                    <label key={`label${slideNum}${compNum}`}>
+                        {components[compNum].data.label}
+                        <input
+                            key={`input${slideNum}${compNum}`}
+                            aria-label={components[compNum].data.ariaLabel}
+                            placeholder={
+                                components[compNum].data.placeholder
+                            }></input>
+                    </label>
                 );
             }
             case "separator":

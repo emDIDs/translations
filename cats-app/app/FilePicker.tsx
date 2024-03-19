@@ -122,11 +122,6 @@ const FilePicker = ({
                                                         spanishReusedText[key];
                                                 }
                                             );
-                                            console.log(
-                                                translatedApplet[
-                                                    materialIdFromFile
-                                                ]
-                                            );
                                         }
                                     }
                                 }

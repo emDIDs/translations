@@ -8,7 +8,7 @@ const button3 = document.getElementById("translate");
 const button4 = document.getElementById("download");
 const slideData = document.getElementById("slide-data");
 const slideContainer = document.getElementById("slide-data");
-
+let width = 0;
 const sleep = (ms = 0) =>
     new Promise((resolve) => {
         setTimeout(resolve, ms);
@@ -88,7 +88,7 @@ function gatherData(download = false) {
     }
     const globalID = input1.value;
     try {
-        const authToken = prompt("Enter authorization token")
+        const authToken = prompt("Enter authorization token");
         fetch(
             `https://digital.greatminds.org/lessons/api/authoring/v2/preview/version/${globalID}`,
             {
@@ -521,6 +521,7 @@ function displayData() {
             )
             .then((geoGebraObject) => {
                 console.warn(ggbObject);
+                width = JSON.parse(ggbApplet.getViewProperties()).width;
                 return geoGebraObject;
             });
     }
@@ -866,11 +867,9 @@ async function translateApplet(
                     if (ggbApplet.isIndependent(el)) {
                         ggbApplet.setTextValue(el, spanishObject[el]);
                     } else {
-                        if (el !== "escText") {
-                            ggbApplet.evalCommand(
-                                el.concat("=", spanishObject[el])
-                            );
-                        }
+                        ggbApplet.evalCommand(
+                            el.concat("=", spanishObject[el])
+                        );
                     }
                     break;
                 }
@@ -962,6 +961,7 @@ async function translateApplet(
             const params = {
                 material_id: "d5mfqpx5",
                 appName: "classic",
+                width: width,
                 height: 650,
                 showToolBar: false,
                 showAlgebraInput: false,
@@ -983,6 +983,7 @@ async function translateApplet(
     }
 
     handleGlobalJS(englishReusedText, spanishReusedText, count);
+
     // download applet
     function downloadApplet() {
         const slideData = document.querySelectorAll("#slide-data");
@@ -1002,24 +1003,7 @@ async function translateApplet(
     downloadApplet();
 }
 
-// TODO: Fix function to download and name all applets appropriately
-// // download applet
-// function downloadApplet() {
-//     ggbApplet.evalCommand("ScreenDimensions = Corner(5)");
-//     ggbApplet.getBase64(function (str64) {
-//         const element = document.createElement("a");
-//         element.href = window.URL.createObjectURL(
-//             new Blob([str64], {
-//                 type: "application/vnd.geogebra.file",
-//             })
-//         );
-//         element.download = input1.value + ".ggb";
-//         element.click();
-//     });
-// }
-
 button4.addEventListener("click", () => {
-    // downloadApplet();
     const downloadLinks = document.querySelectorAll("a[id*='DownloadLink']");
     downloadLinks.forEach((link) => {
         link.click();

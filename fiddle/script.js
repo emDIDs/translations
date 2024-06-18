@@ -65,7 +65,7 @@ button1.addEventListener("click", () => {
         showAlgebraInput: false,
         showMenuBar: false,
         enableRightClick: false,
-        language: "es",
+        language: "en",
     };
 
     // eslint-disable-next-line no-undef

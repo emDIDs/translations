@@ -9,6 +9,7 @@ const button4 = document.getElementById("download");
 const link1 = document.getElementById("downloadJSON-link");
 
 // boilerplate language - strip it out so translators don't keep translating it
+let width = 0;
 const reusedText = {
     english: {
         xIconCaptionText: "Close.",
@@ -86,7 +87,6 @@ function getGlobalJS() {
         return false;
     });
     const archiveGlobalJS = jsonArchive[archiveNum].fileContent;
-    console.warn(archiveGlobalJS);
     return archiveGlobalJS;
 }
 
@@ -248,6 +248,8 @@ button3.addEventListener("click", () => {
     // get data from textarea
     const translatedText = pastedJSON.value;
     const language = "spanish";
+    width = JSON.parse(ggbApplet.getViewProperties()).width;
+    console.log(width);
     if (!ggbApplet.exists("defaultGGBLanguage")) {
         ggbApplet.evalCommand("defaultGGBLanguage='Spanish'");
     }
@@ -404,7 +406,7 @@ button3.addEventListener("click", () => {
         const params = {
             material_id: "d5mfqpx5",
             appName: "classic",
-            height: 650,
+            width: width,
             showToolBar: false,
             showAlgebraInput: false,
             showMenuBar: false,

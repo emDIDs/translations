@@ -67,6 +67,9 @@ button1.addEventListener("click", () => {
         showMenuBar: false,
         enableRightClick: false,
         language: "en",
+        appletOnLoad(api1) {
+            api1.setValue("showKeyboardInstructions", true);
+        },
     };
 
     // eslint-disable-next-line no-undef
@@ -414,6 +417,7 @@ button3.addEventListener("click", () => {
             language: "es",
             appletOnLoad(api1) {
                 api1.setFileJSON(fullAppletJSON);
+                api1.setValue("showKeyboardInstructions", true);
             },
         };
 

@@ -74,6 +74,7 @@ button1.addEventListener("click", () => {
 
     // eslint-disable-next-line no-undef
     const applet = new GGBApplet(params, true);
+    applet.setHTML5Codebase("https://www.geogebra.org/apps/5.2.849.0/web3d");
     applet.inject("ggb-element");
 });
 
@@ -423,6 +424,7 @@ button3.addEventListener("click", () => {
 
         // eslint-disable-next-line no-undef
         const applet = new GGBApplet(params);
+        applet.setHTML5Codebase("https://www.geogebra.org/apps/5.2.849.0/web3d");
         applet.inject("ggb-element");
     }
 
